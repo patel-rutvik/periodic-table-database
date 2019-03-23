@@ -22,9 +22,6 @@ struct Element {
     string phase;
     string radioactive;
     string natural;
-    string metal;
-    string nonmetal;
-    string metalloid;
     string type;
     string atomRadius;
     string electroNeg;
