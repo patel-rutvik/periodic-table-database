@@ -57,10 +57,37 @@ void welcomeScreen() {
     tft.setCursor(displayconsts::tft_width/8, displayconsts::tft_height/2 + 40);
     //tft.setFont(2);
     tft.print("By: Rutvik Patel and Kaden Dreger");
+    delay(3000);
 }
 
+void initCardScreen() {
+    int sidebar = 80;  // size of sidebar
+    tft.fillScreen(ILI9341_BLACK);
+
+    // blank white card
+    tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
+
+    /* draw buttons */
+
+    // layout button
+    char layoutText[] = {'C', 'L', 'A', 'S', 'S', 'I', 'C'}; 
+    for (int i = 0; i < 6; i++) {
+                tft.drawChar(displayconsts::tft_width - (sidebar/2) - 5,
+                    displayconsts::tft_height/4 + (i*20) + 15, layoutText[i],
+                    ILI9341_WHITE, ILI9341_BLACK, 1);
+            }
+}
+
+void minimalCard(String name, int number) {
+    tft.setCursor(0, 15);
+    tft.print(number);
+    tft.setCursor(0, 50);
+    tft.print(name);
+}
 int main() {
-    setup();
-    welcomeScreen();
+    setup();  // setup program
+    welcomeScreen();  // display welcome screen
+    initCardScreen();  // create blank card
+    minimalCard("Hydrogen", 1);  // example minimal layout
     return 0;
 }
