@@ -1,6 +1,9 @@
 #include "util.h"
 #include "lcd_image.h"
 
+
+int currentLayout = 1;
+
 void setup() {
   // initialize Arduino
   init();
@@ -60,7 +63,7 @@ void welcomeScreen() {
     delay(3000);
 }
 
-void initCardScreen() {
+void blankCard() {
     int sidebar = 80;  // size of sidebar
     tft.fillScreen(ILI9341_BLACK);
 
@@ -70,15 +73,35 @@ void initCardScreen() {
     /* draw buttons */
 
     // layout button
+    tft.setCursor(displayconsts::tft_width - (sidebar/2) - 10, displayconsts::tft_height/4);
+    tft.setTextColor(ILI9341_WHITE);
+    if (currentLayout == 1) {
+        tft.print("L1");
+        tft.drawRect(displayconsts::tft_width - sidebar + 1, 0, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(0, 255, 0));
+    } else if (currentLayout == 2) {
+        tft.print("L2");
+        tft.drawRect(displayconsts::tft_width - sidebar + 1, 0, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(0, 0, 255));
+    } else if (currentLayout == 3) {
+        tft.print("L3");
+        tft.drawRect(displayconsts::tft_width - sidebar + 1, 0, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(255, 0, 0));
+    }
+
+    tft.setCursor(displayconsts::tft_width - (sidebar/2) - 30, 3*displayconsts::tft_height/4);
+    tft.print("Search");
+    tft.drawRect(displayconsts::tft_width - sidebar + 1, displayconsts::tft_height/2, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(255, 255, 0));
+    /*
     char layoutText[] = {'L', '1'}; 
     for (int i = 0; i < 2; i++) {
                 tft.drawChar(displayconsts::tft_width - (sidebar/2) - 5 + (i*10),
                     displayconsts::tft_height/5, layoutText[i],
                     ILI9341_WHITE, ILI9341_BLACK, 1);
     }
+    */
 }
 
 void minimalCard(String name, int number) {
+    blankCard();
+    tft.setTextColor(ILI9341_BLACK);
     tft.setCursor(0, 15);
     tft.print(number);
     tft.setCursor(0, 50);
@@ -87,7 +110,7 @@ void minimalCard(String name, int number) {
 int main() {
     setup();  // setup program
     welcomeScreen();  // display welcome screen
-    initCardScreen();  // create blank card
+    //blankCard();  // create blank card
     minimalCard("Hydrogen", 1);  // example minimal layout
     return 0;
 }
