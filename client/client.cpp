@@ -54,9 +54,9 @@ void welcomeScreen() {
     tft.print("Welcome!");
     tft.setCursor(displayconsts::tft_width/6, displayconsts::tft_height/4 + 50);
     tft.print("Periodic Table Database");
-    tft.setCursor(displayconsts::tft_width/8, displayconsts::tft_height/2 + 40);
+    tft.setCursor(displayconsts::tft_width/6 + 10, displayconsts::tft_height/2 + 40);
     //tft.setFont(2);
-    tft.print("By: Rutvik Patel and Kaden Dreger");
+    tft.print("By: Rutvik and Kaden");
     delay(3000);
 }
 
@@ -70,12 +70,12 @@ void initCardScreen() {
     /* draw buttons */
 
     // layout button
-    char layoutText[] = {'C', 'L', 'A', 'S', 'S', 'I', 'C'}; 
-    for (int i = 0; i < 6; i++) {
-                tft.drawChar(displayconsts::tft_width - (sidebar/2) - 5,
-                    displayconsts::tft_height/4 + (i*20) + 15, layoutText[i],
+    char layoutText[] = {'L', '1'}; 
+    for (int i = 0; i < 2; i++) {
+                tft.drawChar(displayconsts::tft_width - (sidebar/2) - 5 + (i*10),
+                    displayconsts::tft_height/5, layoutText[i],
                     ILI9341_WHITE, ILI9341_BLACK, 1);
-            }
+    }
 }
 
 void minimalCard(String name, int number) {
