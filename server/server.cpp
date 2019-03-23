@@ -1,9 +1,7 @@
 #include "types.h"
 
 
-Element elements[118];
-
-void readFile(string filename) {
+void readFile(string filename, unordered_set<Element, elementHash>& table) {
     /* method to open and read from files found from:
     cplusplus.com/doc/tutorial/files/             */
     ifstream file;  // file object
@@ -20,10 +18,10 @@ void readFile(string filename) {
             }
         }
         while (getline(file, token, delim)) {
-            int index = 0;
+            //int index = 0;
             //getline(file, token, delim);
             temp.atomNum = token;
-            cout << "atomic number read in: " << token << endl;
+            //cout << "atomic number read in: " << token << endl;
             getline(file, token, delim);
             temp.name = token;
             getline(file, token, delim);
@@ -46,12 +44,9 @@ void readFile(string filename) {
             temp.radioactive = token;
             getline(file, token, delim);
             temp.natural = token;
-            getline(file, token, delim);
-            temp.metal = token;
-            getline(file, token, delim);
-            temp.nonmetal = token;
-            getline(file, token, delim);
-            temp.metalloid = token;
+            getline(file, token, delim);  // metal            
+            getline(file, token, delim);  // nonmetal
+            getline(file, token, delim);  // metalloid
             getline(file, token, delim);
             temp.type = token;
             getline(file, token, delim);
@@ -79,8 +74,7 @@ void readFile(string filename) {
             getline(file, token);
             temp.numValence = token;
 
-            elements[index] = temp;
-            index++;
+            table.insert(temp);
             /*
             if (token == "V") {
                 getline(file, token, delim);
@@ -117,8 +111,24 @@ void readFile(string filename) {
 }
 
 int main() {
-    readFile("table-data.txt");
+    unordered_set<Element, elementHash> elements;
+    readFile("table-data.txt", elements);
 
+
+    //searching by name
+    for (auto i : elements) {
+        if (i.name == "Helium") {
+            cout << i.atomNum << endl;
+        }
+    }
+
+
+    // searching by atomic number
+    for (auto i : elements) {
+        if (i.atomNum == "3") {
+            cout << i.numValence << endl;
+        }
+    }
 
     return 0;
 }
