@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>
 #include <SD.h>
+#include <TouchScreen.h>
 #include <Fonts/FreeSansBold9pt7b.h>
 
 namespace clientpins {

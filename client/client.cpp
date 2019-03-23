@@ -2,7 +2,21 @@
 #include "lcd_image.h"
 
 
+#define YP A2  // must be an analog pin, use "An" notation!
+#define XM A3  // must be an analog pin, use "An" notation!
+#define YM  5  // can be a digital pin
+#define XP  4  // can be a digital pin
+
+#define TS_MINX 150
+#define TS_MINY 120
+#define TS_MAXX 920
+#define TS_MAXY 940
+#define MINPRESSURE   10
+#define MAXPRESSURE 1000
+
 int currentLayout = 1;
+TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
+int sidebar = 80;  // size of sidebar
 
 void setup() {
   // initialize Arduino
@@ -63,18 +77,11 @@ void welcomeScreen() {
     delay(3000);
 }
 
-void blankCard() {
-    int sidebar = 80;  // size of sidebar
-    tft.fillScreen(ILI9341_BLACK);
 
-    // blank white card
-    tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
-
-    /* draw buttons */
-
-    // layout button
+void drawButtons() {
     tft.setCursor(displayconsts::tft_width - (sidebar/2) - 10, displayconsts::tft_height/4);
     tft.setTextColor(ILI9341_WHITE);
+    tft.fillRect(displayconsts::tft_width - sidebar + 1, 0, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(0, 0, 0));
     if (currentLayout == 1) {
         tft.print("L1");
         tft.drawRect(displayconsts::tft_width - sidebar + 1, 0, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(0, 255, 0));
@@ -89,6 +96,54 @@ void blankCard() {
     tft.setCursor(displayconsts::tft_width - (sidebar/2) - 30, 3*displayconsts::tft_height/4);
     tft.print("Search");
     tft.drawRect(displayconsts::tft_width - sidebar + 1, displayconsts::tft_height/2, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(255, 255, 0));
+}
+
+void getTouch() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The getTouch function takes no paramaters:
+
+It does not return any parameters.
+
+The point of this function is to...
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    TSPoint touch = ts.getPoint();
+    if (touch.z < MINPRESSURE || touch.z > MAXPRESSURE) {
+        return;
+    }
+    // mapping to the screen, same implementation as we did in class
+    int16_t touched_x = map(touch.y, TS_MINY, TS_MAXY, displayconsts::tft_width, 0);
+    int16_t touched_y = map(touch.x, TS_MINX, TS_MAXX, 0, displayconsts::tft_height);
+    if (touched_x < displayconsts::tft_width - 48) {
+        delay(1000);
+        //flip card here...
+    // Check if a button is pressed and update the appropriate one.
+    } else if (touched_x >= displayconsts::tft_width - sidebar) {
+        if (touched_y <= displayconsts::tft_height/2 - 2) {
+            //increment layout
+            currentLayout++;
+            if (currentLayout > 3) {
+                currentLayout = 1;
+            }
+            //updateButtons(0);
+            drawButtons();
+        } else if (touched_y >= displayconsts::tft_height/2 + 2) {
+            delay(3000);
+            //search protocol goes here...
+        }
+        delay(300);
+    }
+}
+
+
+void blankCard() {
+    tft.fillScreen(ILI9341_BLACK);
+
+    // blank white card
+    tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
+
+    /* draw buttons */
+    drawButtons();
+    
     /*
     char layoutText[] = {'L', '1'}; 
     for (int i = 0; i < 2; i++) {
@@ -106,11 +161,15 @@ void minimalCard(String name, int number) {
     tft.print(number);
     tft.setCursor(0, 50);
     tft.print(name);
+    while(true) {
+        getTouch();
+    }
 }
 int main() {
     setup();  // setup program
     welcomeScreen();  // display welcome screen
     //blankCard();  // create blank card
+
     minimalCard("Hydrogen", 1);  // example minimal layout
     return 0;
 }
