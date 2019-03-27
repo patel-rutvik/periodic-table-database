@@ -7,7 +7,7 @@
 #  necessary to run dijkstra.cpp and server.cpp.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 CC = g++ # compiler of choice
-OBJS = server.o # object files generated
+OBJS = server.o serialport.o # object files generated
 CFLAGS = -c -Wall -std=c++11 # compile flags
 LFLAGS = -static
 EXC = server # executable name
@@ -15,6 +15,9 @@ EXC = server # executable name
 # Builds the project, generating the server executable
 $(EXC): $(OBJS)
 	$(CC) $(OBJS) -o server $(LFLAGS)
+
+serialport.o: serialport.h
+	$(CC) serialport.cpp -o serialport.o $(CFLAGS)
 
 server.o: types.h server.cpp
 	$(CC) server.cpp -o server.o $(CFLAGS)
