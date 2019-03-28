@@ -20,8 +20,10 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 int sidebar = 80;  // size of sidebar
 bool touched = false;
 int cardNum = 1;
+bool flipped = false;
+bool search = false;
 
-
+void drawCard();
 void clientCom(Element& element, int cardNum);
 
 
@@ -106,7 +108,8 @@ void drawButtons() {
     tft.drawRect(displayconsts::tft_width - sidebar + 1, displayconsts::tft_height/2, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(255, 255, 0));
 }
 
-bool getTouch() {
+
+void getTouch() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The getTouch function takes no paramaters:
 
@@ -116,7 +119,7 @@ The point of this function is to...
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     TSPoint touch = ts.getPoint();
     if (touch.z < MINPRESSURE || touch.z > MAXPRESSURE) {
-        return false;
+        return;
     }
     // mapping to the screen, same implementation as we did in class
     int16_t touched_x = map(touch.y, TS_MINY, TS_MAXY, displayconsts::tft_width, 0);
@@ -124,6 +127,12 @@ The point of this function is to...
     if (touched_x < displayconsts::tft_width - 48) {
         delay(1000);
         //flip card here...
+        if (!flipped) {
+            flipped = true;
+        } else {
+            flipped = false;
+        }
+        drawCard();
     // Check if a button is pressed and update the appropriate one.
     } else if (touched_x >= displayconsts::tft_width - sidebar) {
         if (touched_y <= displayconsts::tft_height/2 - 2) {
@@ -134,10 +143,10 @@ The point of this function is to...
             }
             //updateButtons(0);
             drawButtons();
-            return true;
+            drawCard();
         } else if (touched_y >= displayconsts::tft_height/2 + 2) {
             delay(3000);
-            return true;
+            search = true;
             //search protocol goes here...
         }
         delay(100);
@@ -158,53 +167,63 @@ void blankCard() {
 
 void minimalCard(Element& element) {
     blankCard();
-    tft.setTextColor(ILI9341_BLACK);
-    tft.setCursor(0, 15);
-    tft.print(element.atomNum);
-    tft.setCursor(0, 70);
-    tft.setTextSize(4);
-    tft.print(element.symbol);
-    tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
-    tft.setTextSize(1);
-    tft.print(element.name);
-    tft.setCursor((displayconsts::tft_width - sidebar)/3 + 5, displayconsts::tft_height/3);
-    tft.print(element.mass);
-    tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
-    tft.print("minimal layout");
-    while(!touched) {
-        touched = getTouch();
+    if (!flipped) {
+        tft.setTextColor(ILI9341_BLACK);
+        tft.setCursor(0, 15);
+        tft.print(element.atomNum);
+        tft.setCursor(0, 70);
+        tft.setTextSize(4);
+        tft.print(element.symbol);
+        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
+        tft.setTextSize(1);
+        tft.print(element.name);
+        tft.setCursor((displayconsts::tft_width - sidebar)/3 + 5, displayconsts::tft_height/3);
+        tft.print(element.mass);
+        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
+        tft.print("minimal layout");
+    } else {
+        tft.setTextColor(ILI9341_BLACK);
+        tft.setCursor(0, 15);
+        tft.print("THIS IS THE BACK");
     }
-    touched = false;
 }
 
 
 void classicCard(Element& element) {
     blankCard();
-    tft.setTextColor(ILI9341_BLACK);
-    tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
-    tft.print("classic layout");
-    while(!touched) {
-        touched = getTouch();
+    if (!flipped) {
+        tft.setTextColor(ILI9341_BLACK);
+        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
+        tft.print("classic layout");
+    } else {
+        tft.setTextColor(ILI9341_BLACK);
+        tft.setCursor(0, 15);
+        tft.print("THIS IS THE BACK");
     }
-    touched = false;
 }
 
 
 void compactCard(Element& element) {
     blankCard();
-    tft.setTextColor(ILI9341_BLACK);
-    tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
-    tft.print("compact layout");
-    while(!touched) {
-        touched = getTouch();
-    }
-    touched = false;
+    if (!flipped) {
+        tft.setTextColor(ILI9341_BLACK);
+        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
+        tft.print("compact layout");
+    } else {
+        tft.setTextColor(ILI9341_BLACK);
+        tft.setCursor(0, 15);
+        tft.print("THIS IS THE BACK");
+    }    
 }
 
 
 void drawCard() {
     Element element;
-    clientCom(element, cardNum);
+    element.atomNum = "1";
+    element.name = "Hydrogen";
+    element.symbol = "H";
+    element.mass = "69";
+    //clientCom(element, cardNum);
     if (currentLayout == 1) {
         minimalCard(element);
     } else if (currentLayout == 2) {
@@ -410,8 +429,9 @@ int main() {
     welcomeScreen();  // display welcome screen
     //blankCard();  // create blank card
     //minimalCard("Hydrogen", 1);  // example minimal layout
+    drawCard();
     while (true) {
-        drawCard();
+        getTouch();
     }
     return 0;
 }
