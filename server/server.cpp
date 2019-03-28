@@ -202,7 +202,7 @@ lat and lon values, enroute to the end vertex.
             return true;
         }
     }
-    cout << "HELLO" << endl;
+    cout << "Sent last element" << endl;
     // receive acknowledgement
     ack = port.readline(1000);
     if (ack == "") {
@@ -210,6 +210,7 @@ lat and lon values, enroute to the end vertex.
     }
     if (ack[0] == 'A') {
         port.writeline("E\n");
+        cout << "SENT E" << endl;
     } else {
         return true;
     }

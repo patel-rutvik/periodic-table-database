@@ -22,9 +22,13 @@ bool touched = false;
 int cardNum = 1;
 bool flipped = false;
 bool search = false;
+Element element;
 
 void drawCard();
 void clientCom(Element& element, int cardNum);
+void minimalCard(Element& element);
+void classicCard(Element& element);
+void compactCard(Element& element);
 
 
 void setup() {
@@ -125,7 +129,6 @@ The point of this function is to...
     int16_t touched_x = map(touch.y, TS_MINY, TS_MAXY, displayconsts::tft_width, 0);
     int16_t touched_y = map(touch.x, TS_MINX, TS_MAXX, 0, displayconsts::tft_height);
     if (touched_x < displayconsts::tft_width - 48) {
-        delay(1000);
         //flip card here...
         if (!flipped) {
             flipped = true;
@@ -145,7 +148,7 @@ The point of this function is to...
             drawButtons();
             drawCard();
         } else if (touched_y >= displayconsts::tft_height/2 + 2) {
-            delay(3000);
+            delay(1000);
             search = true;
             //search protocol goes here...
         }
@@ -218,12 +221,6 @@ void compactCard(Element& element) {
 
 
 void drawCard() {
-    Element element;
-    element.atomNum = "1";
-    element.name = "Hydrogen";
-    element.symbol = "H";
-    element.mass = "69";
-    //clientCom(element, cardNum);
     if (currentLayout == 1) {
         minimalCard(element);
     } else if (currentLayout == 2) {
@@ -233,8 +230,12 @@ void drawCard() {
     }
 }
 
+void nextCard() {
+    clientCom(element, cardNum);
+    drawCard();
+}
 
-void assignValue(Element element, int index, String value) {
+void assignValue(Element& element, int index, String value) {
     switch (index) {
         case 1: element.atomNum = value;
         case 2: element.name = value;
@@ -265,32 +266,34 @@ void assignValue(Element element, int index, String value) {
 }
 
 
-/** Reads an uint32_t from Serial3, starting from the least-significant
- * and finishing with the most significant byte. 
- */
-String read_word() {
+
+String read_word(uint32_t timeout) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-The read_num function takes no parameters.
+The readWaypoint function takes the parameters:
+    timeout: the time required for a timeout
 
 It returns the parameters:
-    num: the num read in from the serial monitor
+    word: the waypoint read in from serial mon
 
-The point of this function is to read a number from the serial monitor and
-return it once a newline character is reached.
+The point of this function is to read in the waypoint and determine if a timeout
+occured.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-  String word = "";
-  char byte;
+    String word = "";
+    char byte;
+    uint32_t start = millis();  // start timer
 
-  while (true) {
-    if (Serial.available()) {
-        byte = Serial.read();  // take in a byte
-        if (byte != '\n' && byte != ' ') {  // if newline is taken in, break
-            word += byte;
-        } else {
-            return word;  // return the buffer
+    while (true) {
+        if (Serial.available()) {
+            byte = Serial.read();  // read in a byte
+            if (byte != '\n' && byte != ' ') {
+                word += byte;
+            } else {
+                return word;
+            }
+        } else if (millis() - start > timeout) {  // check timeout
+            return "";
         }
     }
-  }
 }
 
 
@@ -374,40 +377,36 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
         // store path length in shared.num_waypoints
         if (Serial.available() && !timeout) {
             for (int count = 1; count <= 25; count ++) {
-                char letter;
-                letter = Serial.read();  // read in the letter
-                Serial.read();  // read in space
-                if (letter == 'C') {
+                String letter = read_word(1000); // read in the letter
+                if (letter == "C") {
+                    Serial.read();  // read in space
                     //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_GREEN);
                     // reading in the number of waypoints
-                    String num = read_word();
-                    tft.setTextColor(ILI9341_YELLOW);
-                    tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/2);
-                    tft.print(num);
-                    if (num != (String)count) {
+                    String num = read_word(1000);
+                    if (num.toInt() != count) {
                         //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_RED);
                         timeout = true;
                     } else {
                         //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_BLUE);
                         Serial.read();
-                        String value = read_word();
+                        String value = read_word(1000);
+                        sendAck();
+                        /*
                         while (!Serial.available()) {
                             sendAck();  // send ack
                         }
+                        */
                         assignValue(element, num.toInt(), value);
                     }
                 } else {
                     //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_BLACK);
                     // send request again with the same point
                     timeout = true;
-
                 }
             }
-            startTime = millis();
-            timeout = checkTimeout(timeout, 1000, startTime);
             if (Serial.available() && !timeout) {
-                char endChar = Serial.read();
-                if (endChar != 'E') {
+                String endChar = read_word(1000);
+                if (endChar != "E") {
                     // send request again with the same point
                     timeout = true;
                 }
@@ -429,7 +428,7 @@ int main() {
     welcomeScreen();  // display welcome screen
     //blankCard();  // create blank card
     //minimalCard("Hydrogen", 1);  // example minimal layout
-    drawCard();
+    nextCard();
     while (true) {
         getTouch();
     }
