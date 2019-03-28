@@ -9,20 +9,13 @@
 
 namespace clientpins {
     // Pins and for the zoom in and out buttons.
-    const uint8_t left_pin = 2;
-    const uint8_t right_pin = 3;
+    const uint8_t left_pin = 3;
+    const uint8_t right_pin = 2;
 
     // the pins used to connect to the AdaFruit display
     const uint8_t sd_cs = 6;
     const uint8_t tft_cs = 10;
     const uint8_t tft_dc = 9;
-
-    // analog pins for joystick axes
-    const uint8_t joy_x_pin = A1;
-    const uint8_t joy_y_pin = A0;
-
-    // joystick button pin
-    const uint8_t joy_button_pin = 8;
 };
 
 // constants related to the display

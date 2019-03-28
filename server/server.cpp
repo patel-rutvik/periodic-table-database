@@ -173,7 +173,6 @@ lat and lon values, enroute to the end vertex.
             cout << endl;
             /*print out the waypoint coordinates*/
             output = printProperties(requestElement, i);
-            cout << output << endl;
             cout << "C " << i << " " << output << endl;
             port.writeline("C ");
             port.writeline(to_string(i));
@@ -182,11 +181,9 @@ lat and lon values, enroute to the end vertex.
             port.writeline("\n");
             continue;
         }
-        do {
-            ack = port.readline(1000);
-        } while (ack == "");
-        cout << "ack received!" << endl;
+        ack = port.readline(1000);
         if (ack == "A\n") {
+            cout << "ack received!" << endl;
             cout << endl;
             /*print out the waypoint coordinates*/
             output = printProperties(requestElement, i);
@@ -230,6 +227,7 @@ It returns no parameters.
 The point of this function is to process the communication with the Arduino
 by sending the number of waypoints and the waypoints themselves.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    cout << "-----------------------------------------------------" << endl;
     bool timeout = false;
     string temp = port.readline(0);
     if (temp[0] == 'R') {
@@ -237,7 +235,6 @@ by sending the number of waypoints and the waypoints themselves.
         cout << "Getting request..." << endl;
         cout << endl;
         string atomNum = request[1];
-        cout << atomNum << endl;
         // Find the element in the table and return the struct.
         Element requestElement = findElement(elements, atomNum);
 

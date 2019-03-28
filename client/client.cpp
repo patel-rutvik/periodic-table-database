@@ -23,12 +23,15 @@ int cardNum = 1;
 bool flipped = false;
 bool search = false;
 Element element;
+uint8_t left_pushed;
+uint8_t right_pushed;
 
 void drawCard();
-void clientCom(Element& element, int cardNum);
-void minimalCard(Element& element);
-void classicCard(Element& element);
-void compactCard(Element& element);
+void clientCom();
+void minimalCard();
+void classicCard();
+void compactCard();
+void nextCard();
 
 
 void setup() {
@@ -39,11 +42,8 @@ void setup() {
   pinMode(clientpins::left_pin, INPUT_PULLUP);
   pinMode(clientpins::right_pin, INPUT_PULLUP);
 
-  // initialize joystick pins and calibrate centre reading
-  pinMode(clientpins::joy_button_pin, INPUT_PULLUP);
-  // x and y are reverse because of how our joystick is oriented
-  
-
+  left_pushed = (digitalRead(clientpins::left_pin) == HIGH);
+  right_pushed = (digitalRead(clientpins::right_pin) == HIGH);
   // initialize serial port
   Serial.begin(9600);
   Serial.flush();  // get rid of any leftover bits
@@ -121,6 +121,27 @@ It does not return any parameters.
 
 The point of this function is to...
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    left_pushed = (digitalRead(clientpins::left_pin) == HIGH);
+    right_pushed = (digitalRead(clientpins::right_pin) == HIGH);
+    delay(100);
+    if (left_pushed && cardNum > 1) {
+        cardNum--;
+        nextCard();
+        return;
+    } else if (right_pushed && cardNum < 118) {
+        cardNum++;
+        nextCard();
+        return;
+    } else if (right_pushed && cardNum == 118) {
+        cardNum = 1;
+        nextCard();
+        return;
+    } else if (left_pushed && cardNum == 1) {
+        cardNum = 118;
+        nextCard();
+        return;
+    }
+
     TSPoint touch = ts.getPoint();
     if (touch.z < MINPRESSURE || touch.z > MAXPRESSURE) {
         return;
@@ -148,7 +169,6 @@ The point of this function is to...
             drawButtons();
             drawCard();
         } else if (touched_y >= displayconsts::tft_height/2 + 2) {
-            delay(1000);
             search = true;
             //search protocol goes here...
         }
@@ -161,14 +181,14 @@ void blankCard() {
     //tft.fillScreen(ILI9341_BLACK);
 
     // blank white card
-    tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
+    tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
 
     /* draw buttons */
     drawButtons();
 }
 
 
-void minimalCard(Element& element) {
+void minimalCard() {
     blankCard();
     if (!flipped) {
         tft.setTextColor(ILI9341_BLACK);
@@ -192,7 +212,7 @@ void minimalCard(Element& element) {
 }
 
 
-void classicCard(Element& element) {
+void classicCard() {
     blankCard();
     if (!flipped) {
         tft.setTextColor(ILI9341_BLACK);
@@ -206,7 +226,7 @@ void classicCard(Element& element) {
 }
 
 
-void compactCard(Element& element) {
+void compactCard() {
     blankCard();
     if (!flipped) {
         tft.setTextColor(ILI9341_BLACK);
@@ -222,20 +242,20 @@ void compactCard(Element& element) {
 
 void drawCard() {
     if (currentLayout == 1) {
-        minimalCard(element);
+        minimalCard();
     } else if (currentLayout == 2) {
-        classicCard(element);
+        classicCard();
     } else if (currentLayout == 3) {
-        compactCard(element);
+        compactCard();
     }
 }
 
 void nextCard() {
-    clientCom(element, cardNum);
+    clientCom();
     drawCard();
 }
 
-void assignValue(Element& element, int index, String value) {
+void assignValue(int index, String value) {
     switch (index) {
         case 1: element.atomNum = value;
         case 2: element.name = value;
@@ -297,6 +317,36 @@ occured.
 }
 
 
+String read_value(uint32_t timeout) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The readWaypoint function takes the parameters:
+    timeout: the time required for a timeout
+
+It returns the parameters:
+    word: the waypoint read in from serial mon
+
+The point of this function is to read in the waypoint and determine if a timeout
+occured.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    String word = "";
+    char byte;
+    uint32_t start = millis();  // start timer
+
+    while (true) {
+        if (Serial.available()) {
+            byte = Serial.read();  // read in a byte
+            if (byte != '\n') {
+                word += byte;
+            } else {
+                return word;
+            }
+        } else if (millis() - start > timeout) {  // check timeout
+            return "";
+        }
+    }
+}
+
+
 bool checkTimeout(bool timeout, uint32_t time, uint32_t startTime) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The checkTimeout function takes the parameters.
@@ -310,10 +360,8 @@ It returns the parameters:
 The point of this function is to determine if a timeout occured since the
 given startTime. If so timeout is set to true and returned.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    uint32_t endTime;
     while (!Serial.available()) {
-        endTime = millis();
-        if ((endTime-startTime) >= time) {  // check the timeout
+        if ((millis()-startTime) >= time) {  // check the timeout
             timeout = true;
             break;
         }
@@ -322,7 +370,7 @@ given startTime. If so timeout is set to true and returned.
 }
 
 
-void sendRequest(int cardNum) {
+void sendRequest() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The sendRequest function takes the parameters:
     start: the starting point
@@ -354,7 +402,7 @@ The point of this function is to send an acknowledgement to the server.
 }
 
 
-void clientCom(Element& element, int cardNum) {
+void clientCom() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The clientCom function takes the parameters.
     start: the starting point
@@ -366,46 +414,38 @@ The point of this function is to process the communication between the Arduino
 and the server. It reads in the waypoints and stores them in shared.waypoints.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     while (true) {
-        //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
-        // draw = false;
         bool timeout = false;
         uint32_t startTime = millis();
-        while (!timeout && !Serial.available()) {
-            sendRequest(cardNum);  // send the request
-            timeout = checkTimeout(timeout, 10000, startTime);
+        sendRequest();  // send the request
+        timeout = checkTimeout(timeout, 100, startTime);       
+        /*
+        while (!Serial.available()) {
+            sendRequest();
         }
+        */
         // store path length in shared.num_waypoints
         if (Serial.available() && !timeout) {
             for (int count = 1; count <= 25; count ++) {
-                String letter = read_word(1000); // read in the letter
+                String letter = read_word(100); // read in the letter
                 if (letter == "C") {
                     Serial.read();  // read in space
-                    //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_GREEN);
                     // reading in the number of waypoints
-                    String num = read_word(1000);
+                    String num = read_word(100);
                     if (num.toInt() != count) {
-                        //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_RED);
                         timeout = true;
                     } else {
-                        //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_BLUE);
                         Serial.read();
-                        String value = read_word(1000);
+                        String value = read_value(100);
                         sendAck();
-                        /*
-                        while (!Serial.available()) {
-                            sendAck();  // send ack
-                        }
-                        */
-                        assignValue(element, num.toInt(), value);
+                        assignValue(num.toInt(), value);
                     }
                 } else {
-                    //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_BLACK);
                     // send request again with the same point
                     timeout = true;
                 }
             }
             if (Serial.available() && !timeout) {
-                String endChar = read_word(1000);
+                String endChar = read_word(100);
                 if (endChar != "E") {
                     // send request again with the same point
                     timeout = true;
