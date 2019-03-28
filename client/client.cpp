@@ -1,5 +1,6 @@
 #include "util.h"
 #include "lcd_image.h"
+#include "types.h"
 
 
 #define YP A2  // must be an analog pin, use "An" notation!
@@ -18,6 +19,10 @@ int currentLayout = 1;
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 int sidebar = 80;  // size of sidebar
 bool touched = false;
+int cardNum = 1;
+
+
+void clientCom(Element& element, int cardNum);
 
 
 void setup() {
@@ -150,19 +155,20 @@ void blankCard() {
     drawButtons();
 }
 
-void minimalCard(String name, String number, String symbol, String protons, String neutrons, String weight) {
+
+void minimalCard(Element& element) {
     blankCard();
     tft.setTextColor(ILI9341_BLACK);
     tft.setCursor(0, 15);
-    tft.print(number);
+    tft.print(element.atomNum);
     tft.setCursor(0, 70);
     tft.setTextSize(4);
-    tft.print(symbol);
+    tft.print(element.symbol);
     tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
     tft.setTextSize(1);
-    tft.print(name);
+    tft.print(element.name);
     tft.setCursor((displayconsts::tft_width - sidebar)/3 + 5, displayconsts::tft_height/3);
-    tft.print(weight);
+    tft.print(element.mass);
     tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
     tft.print("minimal layout");
     while(!touched) {
@@ -171,7 +177,8 @@ void minimalCard(String name, String number, String symbol, String protons, Stri
     touched = false;
 }
 
-void classicCard(String name, String number, String symbol, String protons, String neutrons, String weight) {
+
+void classicCard(Element& element) {
     blankCard();
     tft.setTextColor(ILI9341_BLACK);
     tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
@@ -182,7 +189,8 @@ void classicCard(String name, String number, String symbol, String protons, Stri
     touched = false;
 }
 
-void compactCard(String name, String number, String symbol, String protons, String neutrons, String weight) {
+
+void compactCard(Element& element) {
     blankCard();
     tft.setTextColor(ILI9341_BLACK);
     tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
@@ -194,13 +202,205 @@ void compactCard(String name, String number, String symbol, String protons, Stri
 }
 
 
-void drawCard(String name, String number, String symbol, String protons, String neutrons, String weight) {
+void drawCard() {
+    Element element;
+    clientCom(element, cardNum);
     if (currentLayout == 1) {
-        minimalCard(name, number, symbol, protons, neutrons, weight);
+        minimalCard(element);
     } else if (currentLayout == 2) {
-        classicCard(name, number, symbol, protons, neutrons, weight);
+        classicCard(element);
     } else if (currentLayout == 3) {
-        compactCard(name, number, symbol, protons, neutrons, weight);
+        compactCard(element);
+    }
+}
+
+
+void assignValue(Element element, int index, String value) {
+    switch (index) {
+        case 1: element.atomNum = value;
+        case 2: element.name = value;
+        case 3: element.symbol = value;
+        case 4: element.mass = value;
+        case 5: element.neutrons = value;
+        case 6: element.protons = value;
+        case 7: element.electrons = value;
+        case 8: element.period = value;
+        case 9: element.group = value;
+        case 10: element.phase = value;
+        case 11: element.radioactive = value;
+        case 12: element.natural = value;
+        case 13: element.type = value;
+        case 14: element.atomRadius = value;
+        case 15: element.electroNeg = value;
+        case 16: element.firstIon = value;
+        case 17: element.density = value;
+        case 18: element.mp = value;
+        case 19: element.bp = value;
+        case 20: element.numIsotopes = value;
+        case 21: element.founder = value;
+        case 22: element.year = value;
+        case 23: element.heatCap = value;
+        case 24: element.numShells = value;
+        case 25: element.numValence = value;
+    }
+}
+
+
+/** Reads an uint32_t from Serial3, starting from the least-significant
+ * and finishing with the most significant byte. 
+ */
+String read_word() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The read_num function takes no parameters.
+
+It returns the parameters:
+    num: the num read in from the serial monitor
+
+The point of this function is to read a number from the serial monitor and
+return it once a newline character is reached.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  String word = "";
+  char byte;
+
+  while (true) {
+    if (Serial.available()) {
+        byte = Serial.read();  // take in a byte
+        if (byte != '\n' && byte != ' ') {  // if newline is taken in, break
+            word += byte;
+        } else {
+            return word;  // return the buffer
+        }
+    }
+  }
+}
+
+
+bool checkTimeout(bool timeout, uint32_t time, uint32_t startTime) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The checkTimeout function takes the parameters.
+    timeout: the timeout boolean
+    time: the time for timeout
+    startTime: the starting time
+
+It returns the parameters:
+  timeout: the timeout boolean
+
+The point of this function is to determine if a timeout occured since the
+given startTime. If so timeout is set to true and returned.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    uint32_t endTime;
+    while (!Serial.available()) {
+        endTime = millis();
+        if ((endTime-startTime) >= time) {  // check the timeout
+            timeout = true;
+            break;
+        }
+    }
+    return timeout;
+}
+
+
+void sendRequest(int cardNum) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The sendRequest function takes the parameters:
+    start: the starting point
+    end: the ending point
+
+It returns no parameters.
+
+The point of this function is to send the starting and ending points from the
+Arduino to the server.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    Serial.flush();
+    Serial.print("R ");
+    Serial.print((String)cardNum);
+    Serial.println(" ");
+    Serial.flush();
+}
+
+
+void sendAck() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The sendAck function takes no parameters.
+
+It returns no parameters.
+
+The point of this function is to send an acknowledgement to the server.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    // send the A character followed by a newline
+    Serial.println("A");
+}
+
+
+void clientCom(Element& element, int cardNum) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The clientCom function takes the parameters.
+    start: the starting point
+    end: the end point
+
+It returns no parameters.
+
+The point of this function is to process the communication between the Arduino
+and the server. It reads in the waypoints and stores them in shared.waypoints.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    while (true) {
+        //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
+        // draw = false;
+        bool timeout = false;
+        uint32_t startTime = millis();
+        while (!timeout && !Serial.available()) {
+            sendRequest(cardNum);  // send the request
+            timeout = checkTimeout(timeout, 10000, startTime);
+        }
+        // store path length in shared.num_waypoints
+        if (Serial.available() && !timeout) {
+            for (int count = 1; count <= 25; count ++) {
+                char letter;
+                letter = Serial.read();  // read in the letter
+                Serial.read();  // read in space
+                if (letter == 'C') {
+                    //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_GREEN);
+                    // reading in the number of waypoints
+                    String num = read_word();
+                    tft.setTextColor(ILI9341_YELLOW);
+                    tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/2);
+                    tft.print(num);
+                    if (num != (String)count) {
+                        //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_RED);
+                        timeout = true;
+                    } else {
+                        //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_BLUE);
+                        Serial.read();
+                        String value = read_word();
+                        while (!Serial.available()) {
+                            sendAck();  // send ack
+                        }
+                        assignValue(element, num.toInt(), value);
+                    }
+                } else {
+                    //tft.fillRect( 0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_BLACK);
+                    // send request again with the same point
+                    timeout = true;
+
+                }
+            }
+            startTime = millis();
+            timeout = checkTimeout(timeout, 1000, startTime);
+            if (Serial.available() && !timeout) {
+                char endChar = Serial.read();
+                if (endChar != 'E') {
+                    // send request again with the same point
+                    timeout = true;
+                }
+            }
+        }
+        if (timeout) {
+            Serial.flush();
+            continue;  // retry request
+        } else {
+            // draw = true;
+            break;
+        }
     }
 }
 
@@ -209,10 +409,9 @@ int main() {
     setup();  // setup program
     welcomeScreen();  // display welcome screen
     //blankCard();  // create blank card
-
     //minimalCard("Hydrogen", 1);  // example minimal layout
     while (true) {
-        drawCard("Hydrogen", "1", "H", "1", "1", "weight");
+        drawCard();
     }
     return 0;
 }

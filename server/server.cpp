@@ -153,7 +153,7 @@ string printProperties(Element requestElement, int index) {
 }
 
 
-bool sendElement(unordered_set<Element, elementHash>& elements, Element requestElement) {
+bool sendElement(unordered_set<Element, elementHash>& elements, Element& requestElement) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The printWaypoints function takes the parameters:
     tree     : the search tree with respective to the starting vertex
@@ -169,16 +169,28 @@ lat and lon values, enroute to the end vertex.
     string ack, output;
     for (int i = 1; i <= 25; i++) {
         // receive acknowledgement
-        if (i > 1) {
-            ack = port.readline(1000);
-            cout << "ack received!" << endl;
-        }
-        if (ack[0] == 'A' || i == 1) {
+        if (i == 1) {
             cout << endl;
             /*print out the waypoint coordinates*/
             output = printProperties(requestElement, i);
-            cout << "C " << i << " " << output;
+            cout << output << endl;
+            cout << "C " << i << " " << output << endl;
+            port.writeline("C ");
+            port.writeline(to_string(i));
+            port.writeline(" ");
+            port.writeline(output);
+            port.writeline("\n");
+            continue;
+        }
+        do {
+            ack = port.readline(1000);
+        } while (ack == "");
+        cout << "ack received!" << endl;
+        if (ack == "A\n") {
             cout << endl;
+            /*print out the waypoint coordinates*/
+            output = printProperties(requestElement, i);
+            cout << "C " << i << " " << output << endl;
             port.writeline("C ");
             port.writeline(to_string(i));
             port.writeline(" ");
@@ -190,6 +202,7 @@ lat and lon values, enroute to the end vertex.
             return true;
         }
     }
+    cout << "HELLO" << endl;
     // receive acknowledgement
     ack = port.readline(1000);
     if (ack == "") {
@@ -222,7 +235,8 @@ by sending the number of waypoints and the waypoints themselves.
         vector<string> request = split(temp, ' ');  // find citation later...
         cout << "Getting request..." << endl;
         cout << endl;
-        string atomNum;
+        string atomNum = request[1];
+        cout << atomNum << endl;
         // Find the element in the table and return the struct.
         Element requestElement = findElement(elements, atomNum);
 
