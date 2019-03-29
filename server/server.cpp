@@ -4,7 +4,8 @@
 
 SerialPort port("/dev/ttyACM0");
 
-
+bool sendFailed = false;
+string nameRequest = "";
 // This is a modified implementation of split from:
 // https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
 vector<string> split(string str, char delim) {
@@ -46,10 +47,7 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
             }
         }
         while (getline(file, token, delim)) {
-            //int index = 0;
-            //getline(file, token, delim);
             temp.atomNum = token;
-            //cout << "atomic number read in: " << token << endl;
             getline(file, token, delim);
             temp.name = token;
             getline(file, token, delim);
@@ -121,6 +119,15 @@ Element findElement(unordered_set<Element, elementHash>& elements, string num) {
     }
 }
 
+Element findName(unordered_set<Element, elementHash>& elements, string name) {
+    for (auto i : elements) {
+        if (i.name == name) {
+            cout << "Found element" << endl;
+            return i;
+        }
+    }
+}
+
 
 string printProperties(Element requestElement, int index) {
     switch (index) {
@@ -167,51 +174,31 @@ The point of this function is to print the number of waypoints, along with their
 lat and lon values, enroute to the end vertex.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     string ack, output;
+    ack = "A\n";
     for (int i = 1; i <= 25; i++) {
-        // receive acknowledgement
-        if (i == 1) {
-            cout << endl;
-            /*print out the waypoint coordinates*/
-            output = printProperties(requestElement, i);
-            cout << "C " << i << " " << output << endl;
-            port.writeline("C ");
-            port.writeline(to_string(i));
-            port.writeline(" ");
-            port.writeline(output);
-            port.writeline("\n");
-            continue;
-        }
-        ack = port.readline(1000);
         if (ack == "A\n") {
-            cout << "ack received!" << endl;
-            cout << endl;
+            
             /*print out the waypoint coordinates*/
             output = printProperties(requestElement, i);
-            cout << "C " << i << " " << output << endl;
+            //cout << "C " << i << " " << output << endl;
             port.writeline("C ");
             port.writeline(to_string(i));
             port.writeline(" ");
             port.writeline(output);
             port.writeline("\n");
+            ack = port.readline(50);
         } else {
             // timeout...
             cout << "timeout.." << endl << endl;
             return true;
         }
     }
-    cout << "Sent last element" << endl;
+    cout << "sent last element" << endl;
     // receive acknowledgement
-    ack = port.readline(1000);
-    if (ack == "") {
-        return true;
-    }
-    if (ack[0] == 'A') {
-        port.writeline("E\n");
-        cout << "SENT E" << endl;
-    } else {
-        return true;
-    }
+    port.readline(10);
+
     // indicating end of request
+    sendFailed = false;
     return false;  // no timeout
 }
 
@@ -227,7 +214,6 @@ It returns no parameters.
 The point of this function is to process the communication with the Arduino
 by sending the number of waypoints and the waypoints themselves.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    cout << "-----------------------------------------------------" << endl;
     bool timeout = false;
     string temp = port.readline(0);
     if (temp[0] == 'R') {
@@ -247,7 +233,22 @@ by sending the number of waypoints and the waypoints themselves.
         }
     } else if (temp[0] == 'S') {
         // DO search stuff
-        cout << "SEARCH" << endl;
+        if (!sendFailed) {
+            cout << "Enter element name here: ";
+            // get input from terminal
+            
+            cin >> nameRequest;
+        }
+        // find that element
+        Element requestElement = findName(elements, nameRequest);
+        timeout = sendElement(elements, requestElement);
+        if (timeout) {
+            sendFailed = true;
+        } else {
+            sendFailed = false;
+        }
+
+        // send the element
     }
 
 }

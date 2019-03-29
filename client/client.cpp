@@ -32,6 +32,7 @@ void minimalCard();
 void classicCard();
 void compactCard();
 void nextCard();
+void searchRequest();
 
 
 void setup() {
@@ -85,9 +86,8 @@ void welcomeScreen() {
     tft.setCursor(displayconsts::tft_width/6, displayconsts::tft_height/4 + 50);
     tft.print("Periodic Table Database");
     tft.setCursor(displayconsts::tft_width/6 + 10, displayconsts::tft_height/2 + 40);
-    //tft.setFont(2);
     tft.print("By: Rutvik and Kaden");
-    delay(3000);
+    delay(1000);
     tft.fillScreen(ILI9341_BLACK);
 }
 
@@ -106,7 +106,6 @@ void drawButtons() {
         tft.print("L3");
         tft.drawRect(displayconsts::tft_width - sidebar + 1, 0, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(255, 0, 0));
     }
-
     tft.setCursor(displayconsts::tft_width - (sidebar/2) - 30, 3*displayconsts::tft_height/4);
     tft.print("Search");
     tft.drawRect(displayconsts::tft_width - sidebar + 1, displayconsts::tft_height/2, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(255, 255, 0));
@@ -170,7 +169,8 @@ The point of this function is to...
             drawCard();
         } else if (touched_y >= displayconsts::tft_height/2 + 2) {
             search = true;
-            //search protocol goes here...
+            nextCard();
+            search = false;
         }
         delay(100);
     }
@@ -178,8 +178,6 @@ The point of this function is to...
 
 
 void blankCard() {
-    //tft.fillScreen(ILI9341_BLACK);
-
     // blank white card
     tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
 
@@ -305,7 +303,7 @@ occured.
     while (true) {
         if (Serial.available()) {
             byte = Serial.read();  // read in a byte
-            if (byte != '\n' && byte != ' ') {
+            if (byte != ' ') {
                 word += byte;
             } else {
                 return word;
@@ -369,6 +367,22 @@ given startTime. If so timeout is set to true and returned.
     return timeout;
 }
 
+void searchRequest() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The sendRequest function takes the parameters:
+    start: the starting point
+    end: the ending point
+
+It returns no parameters.
+
+The point of this function is to send the starting and ending points from the
+Arduino to the server.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    Serial.flush();
+    Serial.println("S");
+    Serial.flush();
+}
+
 
 void sendRequest() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -416,13 +430,14 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
     while (true) {
         bool timeout = false;
         uint32_t startTime = millis();
-        sendRequest();  // send the request
-        timeout = checkTimeout(timeout, 100, startTime);       
-        /*
-        while (!Serial.available()) {
-            sendRequest();
+        if (!search) {
+            sendRequest();  // send the request
+            timeout = checkTimeout(timeout, 1000, startTime);
+        } else {
+            searchRequest();
+            timeout = checkTimeout(timeout, 10000, startTime);
         }
-        */
+
         // store path length in shared.num_waypoints
         if (Serial.available() && !timeout) {
             for (int count = 1; count <= 25; count ++) {
@@ -444,19 +459,11 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
                     timeout = true;
                 }
             }
-            if (Serial.available() && !timeout) {
-                String endChar = read_word(100);
-                if (endChar != "E") {
-                    // send request again with the same point
-                    timeout = true;
-                }
-            }
         }
         if (timeout) {
-            Serial.flush();
+            read_value(10);
             continue;  // retry request
         } else {
-            // draw = true;
             break;
         }
     }
@@ -466,8 +473,6 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
 int main() {
     setup();  // setup program
     welcomeScreen();  // display welcome screen
-    //blankCard();  // create blank card
-    //minimalCard("Hydrogen", 1);  // example minimal layout
     nextCard();
     while (true) {
         getTouch();
