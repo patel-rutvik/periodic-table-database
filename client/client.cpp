@@ -93,6 +93,7 @@ void welcomeScreen() {
 
 
 void drawButtons() {
+    tft.setTextSize(1);
     tft.setCursor(displayconsts::tft_width - (sidebar/2) - 10, displayconsts::tft_height/4);
     tft.setTextColor(ILI9341_WHITE);
     tft.fillRect(displayconsts::tft_width - sidebar + 1, 0, sidebar - 1, displayconsts::tft_height/2 - 1, tft.color565(0, 0, 0));
@@ -209,26 +210,81 @@ void blankCard() {
 }
 
 
+void backCard() {
+    tft.setTextColor(ILI9341_BLACK);
+    tft.setTextSize(1);
+    tft.setCursor(0,15);
+    tft.print("Neutrons:");
+    tft.setCursor(85, 15);
+    tft.print(element.neutrons);
+    tft.setCursor(0, 35);
+    tft.print("Protons:");
+    tft.setCursor(75, 35);
+    tft.print(element.protons);
+    tft.setCursor(0, 55);
+    tft.print("Electrons:");
+    tft.setCursor(85, 55);
+    tft.print(element.electrons);
+    tft.setCursor(0, 75);
+    tft.print("Period:");
+    tft.setCursor(60, 75);
+    tft.print(element.period);
+    tft.setCursor(0, 95);
+    tft.print("Group:");
+    tft.setCursor(60, 95);
+    tft.print(element.group);
+    tft.setCursor(0, 115);
+    tft.print("Phase:");
+    tft.setCursor(60, 115);
+    tft.print(element.phase);
+    tft.setCursor(0, 135);
+    tft.print("Founder:");
+    tft.setCursor(80, 135);
+    tft.print(element.founder);
+    tft.setCursor(0, 155);
+    tft.print("Natural:");
+    tft.setCursor(70, 155);
+    tft.print(element.natural);
+    tft.setCursor(0, 175);
+    tft.print("Type:");
+    tft.setCursor(50, 175);
+    tft.print(element.type);
+    tft.setCursor(0, 195);
+    tft.print("Radius:");
+    tft.setCursor(70, 195);
+    tft.print(element.atomRadius);
+    tft.setCursor(0, 215);
+    tft.print("melting point:");
+    tft.setCursor(118, 215);
+    tft.print(element.mp);
+    tft.setCursor(0, 235);
+    tft.print("boiling point:");
+    tft.setCursor(115, 235);
+    tft.print(element.bp);
+}
+
 void minimalCard() {
     blankCard();
     if (!flipped) {
+        tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
-        tft.setCursor(0, 15);
+        tft.setCursor(0, 25);
         tft.print(element.atomNum);
-        tft.setCursor(0, 70);
+        
+        tft.setCursor(0, 90);
         tft.setTextSize(4);
         tft.print(element.symbol);
-        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
-        tft.setTextSize(1);
+        tft.setCursor(0, 130);
+        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
+        tft.setTextSize(2);
         tft.print(element.name);
-        tft.setCursor((displayconsts::tft_width - sidebar)/3 + 5, displayconsts::tft_height/3);
-        tft.print(element.mass);
-        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
-        tft.print("minimal layout");
+        
+        //tft.setCursor((displayconsts::tft_width - sidebar)/3 + 5, displayconsts::tft_height/3);
+        //tft.print(element.mass);
+        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
+        //tft.print("minimal layout");
     } else {
-        tft.setTextColor(ILI9341_BLACK);
-        tft.setCursor(0, 15);
-        tft.print("THIS IS THE BACK");
+        backCard();
     }
 }
 
@@ -237,12 +293,25 @@ void classicCard() {
     blankCard();
     if (!flipped) {
         tft.setTextColor(ILI9341_BLACK);
-        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
-        tft.print("classic layout");
-    } else {
+        tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
-        tft.setCursor(0, 15);
-        tft.print("THIS IS THE BACK");
+        tft.setCursor(0, 25);
+        tft.print(element.atomNum);
+        tft.setTextSize(1);
+        tft.setCursor(205, 15);
+        tft.print(element.electroNeg);
+        tft.setCursor(0, 90);
+        tft.setTextSize(4);
+        tft.print(element.symbol);
+        tft.setCursor(0, 130);
+        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
+        tft.setTextSize(2);
+        tft.print(element.name);
+        tft.setTextSize(1);
+        tft.setCursor(0, 160);
+        tft.print(element.mass);
+    } else {
+        backCard();
     }
 }
 
@@ -251,12 +320,25 @@ void compactCard() {
     blankCard();
     if (!flipped) {
         tft.setTextColor(ILI9341_BLACK);
-        tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
-        tft.print("compact layout");
-    } else {
+        tft.setTextSize(1);
         tft.setTextColor(ILI9341_BLACK);
-        tft.setCursor(0, 15);
-        tft.print("THIS IS THE BACK");
+        tft.setCursor(0, 20);
+        tft.print(element.atomNum);
+        tft.setTextSize(1);
+        tft.setCursor(205, 15);
+        tft.print(element.electroNeg);
+        tft.setCursor(0, 50);
+        tft.setTextSize(2);
+        tft.print(element.symbol);
+        tft.setCursor(0, 80);
+        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
+        tft.setTextSize(1);
+        tft.print(element.name);
+        
+        tft.setCursor(0, 110);
+        tft.print(element.mass);
+    } else {
+        backCard();
     }    
 }
 
