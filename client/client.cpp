@@ -179,7 +179,30 @@ The point of this function is to...
 
 void blankCard() {
     // blank white card
-    tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
+    //tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
+    if (element.type == "Nonmetal") {  // Oxygen
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(0, 118, 0));
+    } else if (element.type == "Transition Metal") {  // Gold
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(128, 0, 0));
+    } else if(element.type == "Noble Gas") {  // Helium
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(0, 0, 235));
+    } else if (element.type == "Alkali Metal") {  // Lithium
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(225, 135, 0));
+    } else if(element.type == "Alkaline Earth Metal") {  // Calcium
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(0, 90, 90));
+    } else if (element.type == "Halogen") {  // Fluorine
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(150, 0, 0));
+    } else if (element.type == "Lanthanide") {
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
+    } else if(element.type == "Metal") {  // Tin
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(101, 67, 33));
+    } else if (element.type == "Metalloid") { // Boron
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(108, 0, 108));
+    } else if (element.type == "Actinide") {
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
+    } else if (element.type == "Transactinide") {
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
+    }
 
     /* draw buttons */
     drawButtons();
@@ -250,6 +273,7 @@ void drawCard() {
 
 void nextCard() {
     clientCom();
+    cardNum = element.atomNum.toInt();
     drawCard();
 }
 
