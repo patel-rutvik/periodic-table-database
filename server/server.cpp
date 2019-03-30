@@ -3,6 +3,7 @@
 
 
 SerialPort port("/dev/ttyACM0");
+struct TrieNode *root = getNode();
 
 bool sendFailed = false;
 string nameRequest = "";
@@ -49,7 +50,13 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
         while (getline(file, token, delim)) {
             temp.atomNum = token;
             getline(file, token, delim);
-            temp.name = token;
+            string tempString = token;
+            tempString[0] = tolower(tempString[0]);
+            temp.name = tempString;
+        
+            
+            insert(root, tempString);
+            
             getline(file, token, delim);
             temp.symbol = token;
             getline(file, token, delim);
@@ -107,6 +114,7 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
         cout << "ERROR. Unable to open the file " << filename << "." << endl;
     }
     file.close();  // closing the file
+    //trie->trieWalk();
 }
 
 
@@ -238,10 +246,23 @@ by sending the number of waypoints and the waypoints themselves.
             // get input from terminal
             
             cin >> nameRequest;
+            nameRequest[0] = tolower(nameRequest[0]);
+            /*
+            for (int i = 0; i < nameRequest.length(); i++) {
+                nameRequest[i] = tolower(nameRequest[0]);
+            }
+            */
+            
+            //trie->search(nameRequest);
+            
         }
+        
         // find that element
         Element requestElement = findName(elements, nameRequest);
         timeout = sendElement(elements, requestElement);
+        //trie->trieWalk();
+        //findwords(root,nameRequest);
+        sendSearchResults(root, nameRequest);
         if (timeout) {
             sendFailed = true;
         } else {
@@ -255,8 +276,15 @@ by sending the number of waypoints and the waypoints themselves.
 
 
 int main() {
+    cout << "starting program" << endl;
     unordered_set<Element, elementHash> elements;
     readFile("table-data.txt", elements);
+    //TrieInsert(root, "Nitrogen");
+    //TrieInsert(root, "Oxygen");
+    //TrieInsert(root, "Fluorine");
+    //TrieInsert(root, "Neon");
+    //TrieInsert(root, "Sodium");
+    //TrieInsert(root, "Hello");
     /*
     //searching by name
     for (auto i : elements) {
@@ -273,9 +301,11 @@ int main() {
         }
     }
     */
+    
     while (true) {
         processRequest(elements);
     }
+    
 
     return 0;
 }

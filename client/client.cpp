@@ -223,7 +223,7 @@ void backCard() {
     tft.print(element.protons);
     tft.setCursor(0, 55);
     tft.print("Electrons:");
-    tft.setCursor(85, 55);
+    tft.setCursor(90, 55);
     tft.print(element.electrons);
     tft.setCursor(0, 75);
     tft.print("Period:");
@@ -266,6 +266,12 @@ void backCard() {
 void minimalCard() {
     blankCard();
     if (!flipped) {
+        /*
+        String temp, other;
+        temp = element.name;
+        other = temp.toUpperCase();
+        element.name = other;
+        */
         tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
         tft.setCursor(0, 25);
@@ -292,6 +298,12 @@ void minimalCard() {
 void classicCard() {
     blankCard();
     if (!flipped) {
+        /*
+        String temp, other;
+        temp = element.name;
+        other = temp.toUpperCase();
+        element.name = other;
+        */
         tft.setTextColor(ILI9341_BLACK);
         tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
@@ -319,6 +331,12 @@ void classicCard() {
 void compactCard() {
     blankCard();
     if (!flipped) {
+        /*
+        String temp, other;
+        temp = element.name;
+        other = temp.toUpperCase();
+        element.name = other;
+        */
         tft.setTextColor(ILI9341_BLACK);
         tft.setTextSize(1);
         tft.setTextColor(ILI9341_BLACK);
