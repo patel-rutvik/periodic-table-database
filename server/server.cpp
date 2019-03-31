@@ -1,8 +1,8 @@
 #include "types.h"
-#include "serialport.h"
 
 
-SerialPort port("/dev/ttyACM0");
+
+
 struct TrieNode *root = getNode();
 
 bool sendFailed = false;
@@ -260,8 +260,7 @@ by sending the number of waypoints and the waypoints themselves.
         // find that element
         Element requestElement = findName(elements, nameRequest);
         timeout = sendElement(elements, requestElement);
-        //trie->trieWalk();
-        //findwords(root,nameRequest);
+
         sendSearchResults(root, nameRequest);
         if (timeout) {
             sendFailed = true;

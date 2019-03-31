@@ -1,17 +1,21 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-
+#include "serialport.h"
 #include <fstream>  // for file
 #include <iostream>
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <stack>
 #include <sstream>
 #include <algorithm>
 #include <string.h>
 
 using namespace std;
+
+stack<string> predictions;  // vector to store search predictions
+SerialPort port("/dev/ttyACM0");
 
 struct Element {
     string atomNum;
@@ -88,8 +92,9 @@ struct TrieNode *getNode(void)
     struct TrieNode *pNode = new TrieNode;
     pNode->isWordEnd = false;
 
-    for (int i = 0; i < ALPHABET_SIZE; i++)
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
         pNode->children[i] = NULL;
+    }
 
     return pNode;
 }
@@ -103,8 +108,9 @@ void insert(struct TrieNode *root, const string key)
     for (int level = 0; level < key.length(); level++)
     {
         int index = CHAR_TO_INDEX(key[level]);
-        if (!pCrawl->children[index])
+        if (!pCrawl->children[index]) {
             pCrawl->children[index] = getNode();
+        }
 
         pCrawl = pCrawl->children[index];
     }
@@ -122,8 +128,9 @@ bool search(struct TrieNode *root, const string key)
     {
         int index = CHAR_TO_INDEX(key[level]);
 
-        if (!pCrawl->children[index])
+        if (!pCrawl->children[index]) {
             return false;
+        }
 
         pCrawl = pCrawl->children[index];
     }
@@ -141,6 +148,43 @@ bool isLastNode(struct TrieNode* root)
     return 1;
 }
 
+void sendPredictions() {
+    /* Plan:
+        - send number of items (N _)
+        - send suggested names
+        - send end character
+    */
+    string ack, output;
+    int n = predictions.size();  // finding number of predictions generated
+    /*Send number of predictions*/
+    port.writeline("N ");
+    port.writeline(to_string(n));
+    port.writeline("\n");
+    cout << "N " << n << endl;
+    
+    //ack = "A\n";
+    
+    /*Sedning all the prediicted elements*/
+    for (int i = 0; i < n; i++) {
+        ack = port.readline(50);  // receive ack
+        if (ack == "A\n") {
+            cout << "ack received" << endl;
+            port.writeline(predictions.top());  // sending top most element
+            predictions.pop();  // removing the element we just sent
+        } else {
+            cout << "Ack not received" << endl;
+        }
+
+    }
+    
+    
+    // receive acknowledgement
+    port.readline(10);
+
+    
+    //return false;  // no timeout
+}
+
 // Recursive function to print auto-suggestions for given
 // node.
 void suggestionsRec(struct TrieNode* root, string currPrefix)
@@ -150,6 +194,12 @@ void suggestionsRec(struct TrieNode* root, string currPrefix)
     {
         cout << currPrefix;
         cout << endl;
+
+        predictions.push(currPrefix);  // adding result to stack
+        // need to send currPrefix to Arduino...
+
+        // create a plan to handle communication..
+
     }
 
     // All children struct node pointers are NULL

@@ -539,6 +539,36 @@ The point of this function is to send an acknowledgement to the server.
     Serial.println("A");
 }
 
+void searchScreen() {
+    blankCard();  // reset card
+
+    /*Search box*/
+    tft.fillRect(20, 20, displayconsts::tft_width - sidebar - 40, 30, ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(40, 40);
+    tft.print("Search goes here");
+
+    int startingPoints[4][2] = {{10,65}, {10, 150}, {130, 65}, {130, 150}};
+    int border = 2;
+    int width = 100;
+    int height = 70;
+
+    /*draw boxes*/
+    for (int i = 0; i < 4; i++) {
+        tft.fillRect(startingPoints[i][0], startingPoints[i][1], width, height, ILI9341_BLACK);
+        tft.fillRect(startingPoints[i][0] + border, startingPoints[i][1] + border, width - 2*border, height - 2*border, ILI9341_WHITE);
+    }
+
+    /*label boxes with search results*/
+    String searchResults[4] = {"hydrogen", "plutonium" ,"oxygen" , "iron"};
+
+    int labelPoints[4][2] = {{15, 105}, {15, 190}, {140, 105}, {140, 190}};
+    tft.setTextColor(ILI9341_BLACK);
+    for (int i = 0; i < 4; i++) {
+        tft.setCursor(labelPoints[i][0], labelPoints[i][1]);
+        tft.print(searchResults[i]);
+    }
+}
 
 void clientCom() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -560,9 +590,13 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
         } else {
             searchRequest();
             timeout = checkTimeout(timeout, 10000, startTime);
+            searchScreen();
+            delay(1000);
+            // read in predictions
+
+            // new search UI
         }
 
-        // store path length in shared.num_waypoints
         if (Serial.available() && !timeout) {
             for (int count = 1; count <= 25; count ++) {
                 String letter = read_word(100); // read in the letter
@@ -585,7 +619,7 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             }
         }
         if (timeout) {
-            read_value(10);
+            read_value(10);  // reading in any junk
             continue;  // retry request
         } else {
             break;
