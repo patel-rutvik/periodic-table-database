@@ -118,7 +118,7 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
 }
 
 
-Element findElement(unordered_set<Element, elementHash>& elements, string num) {
+Element findElement( unordered_set<Element, elementHash>& elements, string num) {
     for (auto i : elements) {
         if (i.atomNum == num) {
             cout << "Found element" << endl;
@@ -127,10 +127,10 @@ Element findElement(unordered_set<Element, elementHash>& elements, string num) {
     }
 }
 
-Element findName(unordered_set<Element, elementHash>& elements, string name) {
+Element findName( unordered_set<Element, elementHash>& elements, string name) {
     for (auto i : elements) {
         if (i.name == name) {
-            cout << "Found element" << endl;
+            //cout << "Found element" << endl;
             return i;
         }
     }
@@ -168,7 +168,7 @@ string printProperties(Element requestElement, int index) {
 }
 
 
-bool sendElement(unordered_set<Element, elementHash>& elements, Element& requestElement) {
+bool sendElement( unordered_set<Element, elementHash>& elements, Element& requestElement) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The printWaypoints function takes the parameters:
     tree     : the search tree with respective to the starting vertex
@@ -211,7 +211,7 @@ lat and lon values, enroute to the end vertex.
 }
 
 
-void processRequest(unordered_set<Element, elementHash>& elements) {
+void processRequest( unordered_set<Element, elementHash>& elements) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The processRequest function takes the parameters:
     graph: the Digraph created from the csv file
@@ -261,7 +261,9 @@ by sending the number of waypoints and the waypoints themselves.
         Element requestElement = findName(elements, nameRequest);
         timeout = sendElement(elements, requestElement);
 
-        sendSearchResults(root, nameRequest);
+        getSearchResults(root, nameRequest, elements);
+
+        sendPredictions();
         if (timeout) {
             sendFailed = true;
         } else {

@@ -570,6 +570,36 @@ void searchScreen() {
     }
 }
 
+/*
+bool getPredictions(String* arr, bool timeout) {
+    // read in N
+    uint32_t startTime = millis();
+    String n_char = read_word(100);
+    timeout = checkTimeout(timeout, 1000, startTime);
+    if (n_char == "N" && !timeout) {
+        String n = read_value(100);
+        
+        //ptr = arr;
+        for (int i = 0; i < n.toInt(); i++) {
+            sendAck();
+            String p = read_word(100);
+            if (p == "P" && !timeout) {
+                arr[i][0] = read_word(100);
+                arr[i][1] = read_value(100);
+            } else {
+                timeout = false;
+            }
+        }
+        read_value(100);
+        sendAck();
+        //ptr = arr;
+    } else {
+        timeout = false;
+        
+    }
+    return timeout;
+}
+*/
 void clientCom() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The clientCom function takes the parameters.
@@ -590,8 +620,39 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
         } else {
             searchRequest();
             timeout = checkTimeout(timeout, 10000, startTime);
+            String arr[4][2];
+            uint32_t startTime = millis();
+            String n_char = read_word(100);
+            timeout = checkTimeout(timeout, 1000, startTime);
+            if (n_char == "N" && !timeout) {
+                Serial.read();
+                String n = read_value(100);
+                
+                //ptr = arr;
+                for (int i = 0; i < n.toInt(); i++) {
+                    sendAck();
+                    String p = read_word(100);
+                    Serial.read();
+                    if (p == "P" && !timeout) {
+                        arr[i][0] = read_word(100);
+                        Serial.read();
+                        arr[i][1] = read_value(100);
+                    } else {
+                        timeout = false;
+                    }
+                }
+                read_value(100);
+                sendAck();
+                //ptr = arr;
+            } else {
+                timeout = false;
+                
+            }
+            //timeout = getPredictions(&arr, timeout);
             searchScreen();
-            delay(1000);
+            delay(3000);
+            search = false;
+            continue;
             // read in predictions
 
             // new search UI

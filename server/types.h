@@ -8,13 +8,14 @@
 #include <unordered_set>
 #include <vector>
 #include <stack>
+#include <utility>
 #include <sstream>
 #include <algorithm>
 #include <string.h>
 
 using namespace std;
 
-stack<string> predictions;  // vector to store search predictions
+stack<pair<string, string>> predictions;  // vector to store search predictions
 SerialPort port("/dev/ttyACM0");
 
 struct Element {
@@ -62,7 +63,7 @@ struct elementHash {
         return hash<string>()(element.atomNum);
     }
 };
-
+Element findName(unordered_set<Element, elementHash>& elements, string name);
 
 // C++ program to demonstrate auto-complete feature
 // using Trie data structure.
@@ -154,6 +155,7 @@ void sendPredictions() {
         - send suggested names
         - send end character
     */
+    cout << "sending results to Arduino..." << endl << endl;
     string ack, output;
     int n = predictions.size();  // finding number of predictions generated
     /*Send number of predictions*/
@@ -169,14 +171,24 @@ void sendPredictions() {
         ack = port.readline(50);  // receive ack
         if (ack == "A\n") {
             cout << "ack received" << endl;
-            port.writeline(predictions.top());  // sending top most element
+
+            port.writeline("P ");  //prediction character
+            pair<string, string> temp = predictions.top();
+            port.writeline(temp.first);  // sending top most element
+            port.writeline(" ");
+            port.writeline(temp.second);  // sending top most element
+            port.writeline("\n");  // sending end line
+            cout << "P " << temp.first << " " << temp.second << endl;
             predictions.pop();  // removing the element we just sent
         } else {
             cout << "Ack not received" << endl;
         }
 
     }
-    
+    /*empty stack*/
+    while (!predictions.empty()) {
+        predictions.pop();
+    }
     
     // receive acknowledgement
     port.readline(10);
@@ -187,7 +199,7 @@ void sendPredictions() {
 
 // Recursive function to print auto-suggestions for given
 // node.
-void suggestionsRec(struct TrieNode* root, string currPrefix)
+void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Element, elementHash>& elements)
 {
     // found a string in Trie with the given prefix
     if (root->isWordEnd)
@@ -195,7 +207,11 @@ void suggestionsRec(struct TrieNode* root, string currPrefix)
         cout << currPrefix;
         cout << endl;
 
-        predictions.push(currPrefix);  // adding result to stack
+        Element element = findName(elements, currPrefix);
+        pair<string, string> temp_pair = make_pair(element.atomNum, element.name);
+        if (predictions.size() < 4) {
+            predictions.push(temp_pair);  // adding pair to stack
+        }
         // need to send currPrefix to Arduino...
 
         // create a plan to handle communication..
@@ -214,7 +230,7 @@ void suggestionsRec(struct TrieNode* root, string currPrefix)
             currPrefix.push_back(97 + i);
 
             // recur over the rest
-            suggestionsRec(root->children[i], currPrefix);
+            suggestionsRec(root->children[i], currPrefix, elements);
             
             //should remove the last index, inserted in this loop.
             currPrefix.pop_back();
@@ -224,7 +240,7 @@ void suggestionsRec(struct TrieNode* root, string currPrefix)
 }
 
 // print suggestions for given query prefix.
-int sendSearchResults(TrieNode* root, const string query)
+int getSearchResults(TrieNode* root, const string query,  unordered_set<Element, elementHash>& elements)
 {
     struct TrieNode* pCrawl = root;
 
@@ -266,7 +282,7 @@ int sendSearchResults(TrieNode* root, const string query)
     if (!isLast)
     {
         string prefix = query;
-        suggestionsRec(pCrawl, prefix);
+        suggestionsRec(pCrawl, prefix, elements);
         return 1;
     }
 }
