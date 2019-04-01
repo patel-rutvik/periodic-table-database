@@ -155,53 +155,62 @@ void sendPredictions() {
         - send suggested names
         - send end character
     */
-    cout << endl;
-    cout << "sending results to Arduino..." << endl;
-    string ack, output;
-    int n = predictions.size();  // finding number of predictions generated
-    /*Send number of predictions*/
-    port.writeline("N ");
-    port.writeline(to_string(n));
-    port.writeline("\n");
-    cout << "N " << n << endl;
-    
-    //ack = "A\n";
-    ack = port.readline(1000);  // receive ack
-    if (ack != "A\n") {
-        cout << "Ack for N not received, ending com..." << endl;
-    } else {
-        cout << "ack for N successfully received" << endl;
-    }
-    /*Sedning all the prediicted elements*/
-
-    for (int i = 0; i < n; i++) {
-        if (ack == "A\n") {
-            if (i > 0) {
-                cout << "ack received" << endl;
-            }
-            port.writeline("P ");  //prediction character
-            pair<string, string> temp = predictions.top();
-            port.writeline(temp.first);  // sending top most element
-            port.writeline(" ");
-            port.writeline(temp.second);  // sending top most element
-            port.writeline("\n");  // sending end line
-            cout << "P " << temp.first << " " << temp.second << endl;
-            predictions.pop();  // removing the element we just sent
-            ack = port.readline(1000);  // receive ack
+    while (true) {
+        bool failed = false;
+        cout << endl;
+        cout << "sending results to Arduino..." << endl;
+        string ack, output;
+        int n = predictions.size();  // finding number of predictions generated
+        /*Send number of predictions*/
+        port.writeline("N ");
+        port.writeline(to_string(n));
+        port.writeline("\n");
+        cout << "N " << n << endl;
+        
+        //ack = "A\n";
+        ack = port.readline(1000);  // receive ack
+        if (ack != "A\n") {
+            cout << "Ack for N not received, retrying com..." << endl;
+            continue;
         } else {
-            if (i > 0) {
-                cout << "Ack for prediction not received" << endl;
-            }
+            cout << "ack for N successfully received" << endl;
         }
+        /*Sedning all the prediicted elements*/
 
+        for (int i = 0; i < n; i++) {
+            if (ack == "A\n") {
+                if (i > 0) {
+                    cout << "ack received" << endl;
+                }
+                port.writeline("P ");  //prediction character
+                pair<string, string> temp = predictions.top();
+                port.writeline(temp.first);  // sending top most element
+                port.writeline(" ");
+                port.writeline(temp.second);  // sending top most element
+                port.writeline("\n");  // sending end line
+                cout << "P " << temp.first << " " << temp.second << endl;
+                predictions.pop();  // removing the element we just sent
+                ack = port.readline(1000);  // receive ack
+            } else {
+                if (i > 0) {
+                    cout << "Ack for prediction not received" << endl;
+                }
+                failed = true;
+            }
+
+        }
+        /*empty stack*/
+        while (!predictions.empty()) {
+            predictions.pop();
+        }
+        
+        if (!failed) {
+            cout << "Sent all predictions successfully..." << endl;
+            break;
+        }
+        // receive acknowledgement
+        //port.readline(10);
     }
-    /*empty stack*/
-    while (!predictions.empty()) {
-        predictions.pop();
-    }
-    
-    // receive acknowledgement
-    port.readline(10);
 
     
     //return false;  // no timeout

@@ -539,6 +539,21 @@ The point of this function is to send an acknowledgement to the server.
     Serial.println("A");
 }
 
+
+void waitingScreen() {
+    blankCard();
+    tft.fillRect(20, 20, displayconsts::tft_width - sidebar - 40, displayconsts::tft_height - 40, ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(45, 80);
+    tft.print("Please enter your");
+    tft.setCursor(40,120);
+    tft.print("element of choice");
+    tft.setCursor(55, 160);
+    tft.print("in the terminal");
+
+}
+
+
 void searchScreen() {
     blankCard();  // reset card
 
@@ -570,36 +585,7 @@ void searchScreen() {
     }
 }
 
-/*
-bool getPredictions(String* arr, bool timeout) {
-    // read in N
-    uint32_t startTime = millis();
-    String n_char = read_word(100);
-    timeout = checkTimeout(timeout, 1000, startTime);
-    if (n_char == "N" && !timeout) {
-        String n = read_value(100);
-        
-        //ptr = arr;
-        for (int i = 0; i < n.toInt(); i++) {
-            sendAck();
-            String p = read_word(100);
-            if (p == "P" && !timeout) {
-                arr[i][0] = read_word(100);
-                arr[i][1] = read_value(100);
-            } else {
-                timeout = false;
-            }
-        }
-        read_value(100);
-        sendAck();
-        //ptr = arr;
-    } else {
-        timeout = false;
-        
-    }
-    return timeout;
-}
-*/
+
 void clientCom() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The clientCom function takes the parameters.
@@ -618,6 +604,7 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             sendRequest();  // send the request
             timeout = checkTimeout(timeout, 1000, startTime);
         } else {
+            waitingScreen();
             searchRequest();  // send search request
 
             /*Read in search predictions*/
@@ -637,15 +624,17 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
                     
                     //ptr = arr;
                     for (int i = 0; i < n.toInt(); i++) {
-                        //sendAck();
-                        String p = read_word(1000);
+                        sendAck();
+                        String p = read_word(100);
                         Serial.read();
                         if (p == "P" && !timeout) {
-                            arr[i][0] = read_word(1000);
+                            arr[i][0] = read_word(100);
                             Serial.read();
-                            arr[i][1] = read_value(1000);
+                            arr[i][1] = read_value(100);
                             sendAck();
                         } else {
+                            continue; // retry request?
+                            sendAck();
                             timeout = false;
                         }
                     }
@@ -653,7 +642,7 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
                     sendAck();
                     //ptr = arr;
                 } else {
-                    break;
+                    continue;  // retry request???
                     timeout = false;
                     
                 }
