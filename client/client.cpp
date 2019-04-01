@@ -618,35 +618,45 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             sendRequest();  // send the request
             timeout = checkTimeout(timeout, 1000, startTime);
         } else {
-            searchRequest();
+            searchRequest();  // send search request
+
+            /*Read in search predictions*/
             timeout = checkTimeout(timeout, 10000, startTime);
-            String arr[4][2];
-            uint32_t startTime = millis();
-            String n_char = read_word(100);
-            timeout = checkTimeout(timeout, 1000, startTime);
-            if (n_char == "N" && !timeout) {
-                Serial.read();
-                String n = read_value(100);
-                
-                //ptr = arr;
-                for (int i = 0; i < n.toInt(); i++) {
-                    sendAck();
-                    String p = read_word(100);
-                    Serial.read();
-                    if (p == "P" && !timeout) {
-                        arr[i][0] = read_word(100);
-                        Serial.read();
-                        arr[i][1] = read_value(100);
-                    } else {
-                        timeout = false;
-                    }
-                }
-                read_value(100);
+            String arr[4][2];  // array to hold 4 predictions
+            timeout = false;
+            while(!Serial.available()) {}
+            while (!timeout && Serial.available()) {
+                uint32_t startTime = millis();
+                String n_char = read_word(1000);
                 sendAck();
-                //ptr = arr;
-            } else {
-                timeout = false;
-                
+                timeout = checkTimeout(timeout, 1000, startTime);
+
+                if (n_char == "N" && !timeout && Serial.available()) {
+                    Serial.read();  // read space
+                    String n = read_value(1000);
+                    
+                    //ptr = arr;
+                    for (int i = 0; i < n.toInt(); i++) {
+                        //sendAck();
+                        String p = read_word(1000);
+                        Serial.read();
+                        if (p == "P" && !timeout) {
+                            arr[i][0] = read_word(1000);
+                            Serial.read();
+                            arr[i][1] = read_value(1000);
+                            sendAck();
+                        } else {
+                            timeout = false;
+                        }
+                    }
+                    read_value(100);
+                    sendAck();
+                    //ptr = arr;
+                } else {
+                    break;
+                    timeout = false;
+                    
+                }
             }
             //timeout = getPredictions(&arr, timeout);
             searchScreen();

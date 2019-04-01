@@ -155,7 +155,8 @@ void sendPredictions() {
         - send suggested names
         - send end character
     */
-    cout << "sending results to Arduino..." << endl << endl;
+    cout << endl;
+    cout << "sending results to Arduino..." << endl;
     string ack, output;
     int n = predictions.size();  // finding number of predictions generated
     /*Send number of predictions*/
@@ -165,13 +166,19 @@ void sendPredictions() {
     cout << "N " << n << endl;
     
     //ack = "A\n";
-    
+    ack = port.readline(1000);  // receive ack
+    if (ack != "A\n") {
+        cout << "Ack for N not received, ending com..." << endl;
+    } else {
+        cout << "ack for N successfully received" << endl;
+    }
     /*Sedning all the prediicted elements*/
-    for (int i = 0; i < n; i++) {
-        ack = port.readline(50);  // receive ack
-        if (ack == "A\n") {
-            cout << "ack received" << endl;
 
+    for (int i = 0; i < n; i++) {
+        if (ack == "A\n") {
+            if (i > 0) {
+                cout << "ack received" << endl;
+            }
             port.writeline("P ");  //prediction character
             pair<string, string> temp = predictions.top();
             port.writeline(temp.first);  // sending top most element
@@ -180,8 +187,11 @@ void sendPredictions() {
             port.writeline("\n");  // sending end line
             cout << "P " << temp.first << " " << temp.second << endl;
             predictions.pop();  // removing the element we just sent
+            ack = port.readline(1000);  // receive ack
         } else {
-            cout << "Ack not received" << endl;
+            if (i > 0) {
+                cout << "Ack for prediction not received" << endl;
+            }
         }
 
     }
