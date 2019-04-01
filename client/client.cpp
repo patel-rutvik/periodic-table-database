@@ -638,17 +638,17 @@ int searchScreen(String arr[][2]) {
         }
         int16_t touched_x = map(touch.y, TS_MINY, TS_MAXY, displayconsts::tft_width, 0);
         int16_t touched_y = map(touch.x, TS_MINX, TS_MAXX, 0, displayconsts::tft_height);
-        if (touched_x < startingPoints[0][0] + width) {
+        if (touched_x < startingPoints[0][0] + width && touched_x > startingPoints[0][0]) {
             if (touched_y < startingPoints[0][1] + height && touched_y > startingPoints[0][1]) {
                 // top left box
                 return arr[0][0].toInt();
                 
-            } else if (touched_y < startingPoints[2][1] + height && touched_y > startingPoints[2][1]) {
+            } else if (touched_y < startingPoints[1][1] + height && touched_y > startingPoints[1][1]) {
                 // bottom left box
                 return arr[1][0].toInt();
             }    
-        } else if (touched_x > startingPoints[1][0]) {
-            if (touched_y < startingPoints[1][1] + height && touched_y > startingPoints[1][1]) {
+        } else if (touched_x > startingPoints[2][0] && touched_x < startingPoints[2][0] + width) {
+            if (touched_y < startingPoints[2][1] + height && touched_y > startingPoints[2][1]) {
                 // top right box
                 return arr[2][0].toInt();
             } else if (touched_y < startingPoints[3][1] + height && touched_y > startingPoints[3][1])  {
