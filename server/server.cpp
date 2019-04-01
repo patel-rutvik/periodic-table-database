@@ -259,7 +259,9 @@ by sending the number of waypoints and the waypoints themselves.
         
         // find that element
         Element requestElement = findName(elements, nameRequest);
-        timeout = sendElement(elements, requestElement);
+        
+        
+        //timeout = sendElement(elements, requestElement);
 
         getSearchResults(root, nameRequest, elements);
 

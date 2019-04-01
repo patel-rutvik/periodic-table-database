@@ -539,7 +539,52 @@ The point of this function is to send an acknowledgement to the server.
     Serial.println("A");
 }
 
+void getSearchResults(String arr[][2]) {
+    while (true) {
+        uint32_t startTime = millis();
+        String n_char = read_word(100);
+        //timeout = checkTimeout(timeout, 100, startTime);
 
+        if (n_char == "N") {
+            //sendAck();
+            sendAck();
+            //tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 0, 0));
+            //delay(3000);
+            //Serial.read();  // read space
+            String n = read_value(100);
+            
+            //Serial.read();
+            //ptr = arr;
+            for (int i = 0; i < n.toInt(); i++) {
+                //sendAck();
+                String p = read_word(100);
+                //Serial.read();
+                if (p == "P") {
+                    sendAck();
+                    //sendAck();
+                    arr[i][0] = read_word(100);
+                    //Serial.read();
+                    arr[i][1] = read_value(100);
+                    
+                } else {
+                    //timeout = false;
+                    continue; // retry request?
+                    //sendAck();
+                    
+                }
+            }
+            break;
+            //read_value(100);
+            //sendAck();
+            //ptr = arr;
+        } else {
+            Serial.flush();
+            continue;  // retry request???
+            //timeout = false;
+            
+        }
+    }
+}
 void waitingScreen() {
     blankCard();
     tft.fillRect(20, 20, displayconsts::tft_width - sidebar - 40, displayconsts::tft_height - 40, ILI9341_BLACK);
@@ -554,14 +599,16 @@ void waitingScreen() {
 }
 
 
-void searchScreen() {
-    blankCard();  // reset card
 
+
+int searchScreen(String arr[][2]) {
+    blankCard();  // reset card
+    
     /*Search box*/
     tft.fillRect(20, 20, displayconsts::tft_width - sidebar - 40, 30, ILI9341_BLACK);
     tft.setTextColor(ILI9341_WHITE);
-    tft.setCursor(40, 40);
-    tft.print("Search goes here");
+    tft.setCursor(45, 40);
+    tft.print("Matched Elements");
 
     int startingPoints[4][2] = {{10,65}, {10, 150}, {130, 65}, {130, 150}};
     int border = 2;
@@ -575,14 +622,42 @@ void searchScreen() {
     }
 
     /*label boxes with search results*/
-    String searchResults[4] = {"hydrogen", "plutonium" ,"oxygen" , "iron"};
+    //String searchResults[4] = {"hydrogen", "plutonium" ,"oxygen" , "iron"};
 
     int labelPoints[4][2] = {{15, 105}, {15, 190}, {140, 105}, {140, 190}};
     tft.setTextColor(ILI9341_BLACK);
     for (int i = 0; i < 4; i++) {
         tft.setCursor(labelPoints[i][0], labelPoints[i][1]);
-        tft.print(searchResults[i]);
+        tft.print(arr[i][1]);
     }
+
+    while (true) {
+        TSPoint touch = ts.getPoint();
+        if (touch.z < MINPRESSURE || touch.z > MAXPRESSURE) {
+            continue;
+        }
+        int16_t touched_x = map(touch.y, TS_MINY, TS_MAXY, displayconsts::tft_width, 0);
+        int16_t touched_y = map(touch.x, TS_MINX, TS_MAXX, 0, displayconsts::tft_height);
+        if (touched_x < startingPoints[0][0] + width) {
+            if (touched_y < startingPoints[0][1] + height && touched_y > startingPoints[0][1]) {
+                // top left box
+                return arr[0][0].toInt();
+                
+            } else if (touched_y < startingPoints[2][1] + height && touched_y > startingPoints[2][1]) {
+                // bottom left box
+                return arr[1][0].toInt();
+            }    
+        } else if (touched_x > startingPoints[1][0]) {
+            if (touched_y < startingPoints[1][1] + height && touched_y > startingPoints[1][1]) {
+                // top right box
+                return arr[2][0].toInt();
+            } else if (touched_y < startingPoints[3][1] + height && touched_y > startingPoints[3][1])  {
+                // bottom right box
+                return arr[3][0].toInt();
+            }
+        }
+    }
+
 }
 
 
@@ -598,6 +673,7 @@ The point of this function is to process the communication between the Arduino
 and the server. It reads in the waypoints and stores them in shared.waypoints.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     while (true) {
+        Serial.flush();
         bool timeout = false;
         uint32_t startTime = millis();
         if (!search) {
@@ -610,51 +686,17 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             /*Read in search predictions*/
             timeout = checkTimeout(timeout, 10000, startTime);
             String arr[4][2];  // array to hold 4 predictions
-            timeout = false;
-            while(!Serial.available()) {}
-            while (!timeout && Serial.available()) {
-                uint32_t startTime = millis();
-                String n_char = read_word(1000);
-                sendAck();
-                timeout = checkTimeout(timeout, 1000, startTime);
+            //timeout = false;
+            //while(!Serial.available()) {}
+            
+            getSearchResults(arr);
 
-                if (n_char == "N" && !timeout && Serial.available()) {
-                    Serial.read();  // read space
-                    String n = read_value(1000);
-                    
-                    //ptr = arr;
-                    for (int i = 0; i < n.toInt(); i++) {
-                        sendAck();
-                        String p = read_word(100);
-                        Serial.read();
-                        if (p == "P" && !timeout) {
-                            arr[i][0] = read_word(100);
-                            Serial.read();
-                            arr[i][1] = read_value(100);
-                            sendAck();
-                        } else {
-                            continue; // retry request?
-                            sendAck();
-                            timeout = false;
-                        }
-                    }
-                    read_value(100);
-                    sendAck();
-                    //ptr = arr;
-                } else {
-                    continue;  // retry request???
-                    timeout = false;
-                    
-                }
-            }
-            //timeout = getPredictions(&arr, timeout);
-            searchScreen();
-            delay(3000);
+            cardNum = searchScreen(arr);
+            //searchScreen();
+            //delay(10000);
             search = false;
             continue;
-            // read in predictions
-
-            // new search UI
+            
         }
 
         if (Serial.available() && !timeout) {

@@ -156,19 +156,21 @@ void sendPredictions() {
         - send end character
     */
     while (true) {
+        //Serial.flush();
         bool failed = false;
         cout << endl;
         cout << "sending results to Arduino..." << endl;
         string ack, output;
         int n = predictions.size();  // finding number of predictions generated
         /*Send number of predictions*/
-        port.writeline("N ");
+        port.writeline("N");
+        port.writeline(" ");
         port.writeline(to_string(n));
         port.writeline("\n");
         cout << "N " << n << endl;
         
         //ack = "A\n";
-        ack = port.readline(1000);  // receive ack
+        ack = port.readline(100);  // receive ack
         if (ack != "A\n") {
             cout << "Ack for N not received, retrying com..." << endl;
             continue;
@@ -182,15 +184,16 @@ void sendPredictions() {
                 if (i > 0) {
                     cout << "ack received" << endl;
                 }
-                port.writeline("P ");  //prediction character
-                pair<string, string> temp = predictions.top();
-                port.writeline(temp.first);  // sending top most element
+                port.writeline("P");  //prediction character
                 port.writeline(" ");
-                port.writeline(temp.second);  // sending top most element
+                pair<string, string> temp = predictions.top();
+                port.writeline(temp.first);  // sending atomic num
+                port.writeline(" ");
+                port.writeline(temp.second);  // sending name
                 port.writeline("\n");  // sending end line
                 cout << "P " << temp.first << " " << temp.second << endl;
                 predictions.pop();  // removing the element we just sent
-                ack = port.readline(1000);  // receive ack
+                ack = port.readline(100);  // receive ack
             } else {
                 if (i > 0) {
                     cout << "Ack for prediction not received" << endl;
@@ -203,7 +206,7 @@ void sendPredictions() {
         while (!predictions.empty()) {
             predictions.pop();
         }
-        
+        //Serial.flush();
         if (!failed) {
             cout << "Sent all predictions successfully..." << endl;
             break;
