@@ -194,7 +194,7 @@ lat and lon values, enroute to the end vertex.
             port.writeline(" ");
             port.writeline(output);
             port.writeline("\n");
-            ack = port.readline(50);
+            ack = port.readline(100);
         } else {
             // timeout...
             cout << "timeout.." << endl << endl;
@@ -203,7 +203,7 @@ lat and lon values, enroute to the end vertex.
     }
     cout << "sent last element" << endl;
     // receive acknowledgement
-    port.readline(10);
+    port.readline(100);
 
     // indicating end of request
     sendFailed = false;

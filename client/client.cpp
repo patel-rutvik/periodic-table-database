@@ -582,7 +582,7 @@ int getSearchResults(String arr[][2]) {
             //ptr = arr;
         } else {
             Serial.flush();
-            read_value(10);
+            //read_value(10);
             continue;  // retry request???
             //timeout = false;
             
