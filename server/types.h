@@ -180,7 +180,7 @@ void sendPredictions() {
         /*Sedning all the prediicted elements*/
 
         for (int i = 0; i < n; i++) {
-            if (ack == "A\n") {
+            if (ack == "A\n" && !predictions.empty()) {
                 if (i > 0) {
                     cout << "ack received" << endl;
                 }
@@ -192,6 +192,7 @@ void sendPredictions() {
                 port.writeline(temp.second);  // sending name
                 port.writeline("\n");  // sending end line
                 cout << "P " << temp.first << " " << temp.second << endl;
+                
                 predictions.pop();  // removing the element we just sent
                 ack = port.readline(100);  // receive ack
             } else {
@@ -226,8 +227,7 @@ void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Ele
     // found a string in Trie with the given prefix
     if (root->isWordEnd)
     {
-        cout << currPrefix;
-        cout << endl;
+        cout << currPrefix << endl;
 
         Element element = findName(elements, currPrefix);
         pair<string, string> temp_pair = make_pair(element.atomNum, element.name);
@@ -255,7 +255,9 @@ void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Ele
             suggestionsRec(root->children[i], currPrefix, elements);
             
             //should remove the last index, inserted in this loop.
-            currPrefix.pop_back();
+            if (!currPrefix.empty()) {
+                currPrefix.pop_back();
+            }
             //
         }
     }
@@ -295,7 +297,14 @@ int getSearchResults(TrieNode* root, const string query,  unordered_set<Element,
     cout << "matches: " << endl;
     if (isWord && isLast)
     {
+        cout << "Only one match" << endl;
         cout << query << endl;
+
+        Element element = findName(elements, query);
+        pair<string, string> temp_pair = make_pair(element.atomNum, element.name);
+        
+        predictions.push(temp_pair);  // adding pair to stack
+        
         return -1;
     }
 

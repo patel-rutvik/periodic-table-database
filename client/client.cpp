@@ -539,11 +539,13 @@ The point of this function is to send an acknowledgement to the server.
     Serial.println("A");
 }
 
-void getSearchResults(String arr[][2]) {
+int getSearchResults(String arr[][2]) {
+    String n;
     while (true) {
-        uint32_t startTime = millis();
-        String n_char = read_word(100);
-        //timeout = checkTimeout(timeout, 100, startTime);
+        //uint32_t startTime = millis();
+        String n_char = read_word(1000);
+
+        //bool timeout = checkTimeout(timeout, 1000, startTime);
 
         if (n_char == "N") {
             //sendAck();
@@ -551,8 +553,7 @@ void getSearchResults(String arr[][2]) {
             //tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 0, 0));
             //delay(3000);
             //Serial.read();  // read space
-            String n = read_value(100);
-            
+            n = read_value(100);
             //Serial.read();
             //ptr = arr;
             for (int i = 0; i < n.toInt(); i++) {
@@ -584,7 +585,10 @@ void getSearchResults(String arr[][2]) {
             
         }
     }
+    return n.toInt();
 }
+
+
 void waitingScreen() {
     blankCard();
     tft.fillRect(20, 20, displayconsts::tft_width - sidebar - 40, displayconsts::tft_height - 40, ILI9341_BLACK);
@@ -689,9 +693,13 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             //timeout = false;
             //while(!Serial.available()) {}
             
-            getSearchResults(arr);
-
-            cardNum = searchScreen(arr);
+            int n = getSearchResults(arr);
+            if (n > 1) {
+                cardNum = searchScreen(arr);
+            } else {
+                cardNum = arr[0][0].toInt();
+                //break;
+            }
             //searchScreen();
             //delay(10000);
             search = false;

@@ -225,7 +225,7 @@ by sending the number of waypoints and the waypoints themselves.
     bool timeout = false;
     string temp = port.readline(0);
     if (temp[0] == 'R') {
-        vector<string> request = split(temp, ' ');  // find citation later...
+        vector<string> request = split(temp, ' ');
         cout << "Getting request..." << endl;
         cout << endl;
         string atomNum = request[1];
