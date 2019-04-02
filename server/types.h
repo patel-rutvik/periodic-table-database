@@ -155,13 +155,14 @@ void sendPredictions() {
         - send suggested names
         - send end character
     */
+    string ack, output;
+    int n = predictions.size();  // finding number of predictions generated
     while (true) {
         //Serial.flush();
         bool failed = false;
         cout << endl;
         cout << "sending results to Arduino..." << endl;
-        string ack, output;
-        int n = predictions.size();  // finding number of predictions generated
+        
         /*Send number of predictions*/
         port.writeline("N");
         port.writeline(" ");

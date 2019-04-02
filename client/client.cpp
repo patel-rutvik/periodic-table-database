@@ -203,6 +203,8 @@ void blankCard() {
         tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
     } else if (element.type == "Transactinide") {
         tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
+    } else {
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
     }
 
     /* draw buttons */
@@ -543,13 +545,13 @@ int getSearchResults(String arr[][2]) {
     String n;
     while (true) {
         //uint32_t startTime = millis();
-        String n_char = read_word(1000);
-
+        String n_char = read_word(100);
+        //sendAck();
         //bool timeout = checkTimeout(timeout, 1000, startTime);
 
         if (n_char == "N") {
-            //sendAck();
             sendAck();
+            //sendAck();
             //tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 0, 0));
             //delay(3000);
             //Serial.read();  // read space
@@ -580,6 +582,7 @@ int getSearchResults(String arr[][2]) {
             //ptr = arr;
         } else {
             Serial.flush();
+            read_value(10);
             continue;  // retry request???
             //timeout = false;
             
@@ -602,7 +605,14 @@ void waitingScreen() {
 
 }
 
-
+void noMatchScreen() {
+    blankCard();
+    tft.fillRect(20, 50, displayconsts::tft_width - sidebar - 40, displayconsts::tft_height - 100, ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(50, 120);
+    tft.print("No match found");
+    delay(1500);
+}
 
 
 int searchScreen(String arr[][2]) {
@@ -681,6 +691,7 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
         bool timeout = false;
         uint32_t startTime = millis();
         if (!search) {
+            //blankCard();
             sendRequest();  // send the request
             timeout = checkTimeout(timeout, 1000, startTime);
         } else {
@@ -696,9 +707,11 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             int n = getSearchResults(arr);
             if (n > 1) {
                 cardNum = searchScreen(arr);
-            } else {
+            } else if (n == 1) {
                 cardNum = arr[0][0].toInt();
                 //break;
+            } else {
+                noMatchScreen();
             }
             //searchScreen();
             //delay(10000);

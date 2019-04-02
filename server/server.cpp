@@ -211,7 +211,7 @@ lat and lon values, enroute to the end vertex.
 }
 
 
-void processRequest( unordered_set<Element, elementHash>& elements) {
+void processRequest(unordered_set<Element, elementHash>& elements) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The processRequest function takes the parameters:
     graph: the Digraph created from the csv file
@@ -258,7 +258,7 @@ by sending the number of waypoints and the waypoints themselves.
         }
         
         // find that element
-        Element requestElement = findName(elements, nameRequest);
+        //Element requestElement = findName(elements, nameRequest);
         
         
         //timeout = sendElement(elements, requestElement);
