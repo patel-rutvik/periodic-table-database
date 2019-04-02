@@ -1,8 +1,8 @@
 #include "types.h"
-#include "serialport.h"
 
 
-SerialPort port("/dev/ttyACM0");
+
+
 struct TrieNode *root = getNode();
 
 bool sendFailed = false;
@@ -118,7 +118,7 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
 }
 
 
-Element findElement(unordered_set<Element, elementHash>& elements, string num) {
+Element findElement( unordered_set<Element, elementHash>& elements, string num) {
     for (auto i : elements) {
         if (i.atomNum == num) {
             cout << "Found element" << endl;
@@ -127,10 +127,10 @@ Element findElement(unordered_set<Element, elementHash>& elements, string num) {
     }
 }
 
-Element findName(unordered_set<Element, elementHash>& elements, string name) {
+Element findName( unordered_set<Element, elementHash>& elements, string name) {
     for (auto i : elements) {
         if (i.name == name) {
-            cout << "Found element" << endl;
+            //cout << "Found element" << endl;
             return i;
         }
     }
@@ -168,7 +168,7 @@ string printProperties(Element requestElement, int index) {
 }
 
 
-bool sendElement(unordered_set<Element, elementHash>& elements, Element& requestElement) {
+bool sendElement( unordered_set<Element, elementHash>& elements, Element& requestElement) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The printWaypoints function takes the parameters:
     tree     : the search tree with respective to the starting vertex
@@ -188,13 +188,12 @@ lat and lon values, enroute to the end vertex.
             
             /*print out the waypoint coordinates*/
             output = printProperties(requestElement, i);
-            //cout << "C " << i << " " << output << endl;
             port.writeline("C ");
             port.writeline(to_string(i));
             port.writeline(" ");
             port.writeline(output);
             port.writeline("\n");
-            ack = port.readline(50);
+            ack = port.readline(100);
         } else {
             // timeout...
             cout << "timeout.." << endl << endl;
@@ -203,7 +202,7 @@ lat and lon values, enroute to the end vertex.
     }
     cout << "sent last element" << endl;
     // receive acknowledgement
-    port.readline(10);
+    port.readline(100);
 
     // indicating end of request
     sendFailed = false;
@@ -225,51 +224,34 @@ by sending the number of waypoints and the waypoints themselves.
     bool timeout = false;
     string temp = port.readline(0);
     if (temp[0] == 'R') {
-        vector<string> request = split(temp, ' ');  // find citation later...
+        vector<string> request = split(temp, ' ');
         cout << "Getting request..." << endl;
         cout << endl;
         string atomNum = request[1];
         // Find the element in the table and return the struct.
         Element requestElement = findElement(elements, atomNum);
 
-            /* print out the waypoints enroute to the destination */
         timeout = sendElement(elements, requestElement);
+        request.clear();  // clearing the vector
         if (!timeout) {
             cout << "sent element to client" << endl << endl;
         } else {
             cout << "failed to send element" << endl << endl;
         }
     } else if (temp[0] == 'S') {
-        // DO search stuff
         if (!sendFailed) {
-            cout << "Enter element name here: ";
-            // get input from terminal
-            
+            cout << "Enter element name here: ";            
             cin >> nameRequest;
             nameRequest[0] = tolower(nameRequest[0]);
-            /*
-            for (int i = 0; i < nameRequest.length(); i++) {
-                nameRequest[i] = tolower(nameRequest[0]);
-            }
-            */
-            
-            //trie->search(nameRequest);
-            
         }
-        
-        // find that element
-        Element requestElement = findName(elements, nameRequest);
-        timeout = sendElement(elements, requestElement);
-        //trie->trieWalk();
-        //findwords(root,nameRequest);
-        sendSearchResults(root, nameRequest);
+        getSearchResults(root, nameRequest, elements);
+        sendPredictions();
+        nameRequest.clear();  // clearing name Request
         if (timeout) {
             sendFailed = true;
         } else {
             sendFailed = false;
         }
-
-        // send the element
     }
 
 }
@@ -279,33 +261,8 @@ int main() {
     cout << "starting program" << endl;
     unordered_set<Element, elementHash> elements;
     readFile("table-data.txt", elements);
-    //TrieInsert(root, "Nitrogen");
-    //TrieInsert(root, "Oxygen");
-    //TrieInsert(root, "Fluorine");
-    //TrieInsert(root, "Neon");
-    //TrieInsert(root, "Sodium");
-    //TrieInsert(root, "Hello");
-    /*
-    //searching by name
-    for (auto i : elements) {
-        if (i.name == "Helium") {
-            cout << i.atomNum << endl;
-        }
-    }
-
-
-    // searching by atomic number
-    for (auto i : elements) {
-        if (i.atomNum == "3") {
-            cout << i.numValence << endl;
-        }
-    }
-    */
-    
     while (true) {
         processRequest(elements);
     }
-    
-
     return 0;
 }

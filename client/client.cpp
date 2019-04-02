@@ -33,6 +33,7 @@ void classicCard();
 void compactCard();
 void nextCard();
 void searchRequest();
+void failScreen();
 
 
 void setup() {
@@ -203,6 +204,8 @@ void blankCard() {
         tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
     } else if (element.type == "Transactinide") {
         tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
+    } else {
+        tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
     }
 
     /* draw buttons */
@@ -266,12 +269,7 @@ void backCard() {
 void minimalCard() {
     blankCard();
     if (!flipped) {
-        /*
-        String temp, other;
-        temp = element.name;
-        other = temp.toUpperCase();
-        element.name = other;
-        */
+        
         tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
         tft.setCursor(0, 25);
@@ -281,14 +279,10 @@ void minimalCard() {
         tft.setTextSize(4);
         tft.print(element.symbol);
         tft.setCursor(0, 130);
-        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
         tft.setTextSize(2);
         tft.print(element.name);
         
-        //tft.setCursor((displayconsts::tft_width - sidebar)/3 + 5, displayconsts::tft_height/3);
-        //tft.print(element.mass);
-        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height - 10);
-        //tft.print("minimal layout");
+        
     } else {
         backCard();
     }
@@ -298,12 +292,7 @@ void minimalCard() {
 void classicCard() {
     blankCard();
     if (!flipped) {
-        /*
-        String temp, other;
-        temp = element.name;
-        other = temp.toUpperCase();
-        element.name = other;
-        */
+        
         tft.setTextColor(ILI9341_BLACK);
         tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
@@ -316,7 +305,7 @@ void classicCard() {
         tft.setTextSize(4);
         tft.print(element.symbol);
         tft.setCursor(0, 130);
-        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
+        
         tft.setTextSize(2);
         tft.print(element.name);
         tft.setTextSize(1);
@@ -331,12 +320,7 @@ void classicCard() {
 void compactCard() {
     blankCard();
     if (!flipped) {
-        /*
-        String temp, other;
-        temp = element.name;
-        other = temp.toUpperCase();
-        element.name = other;
-        */
+        
         tft.setTextColor(ILI9341_BLACK);
         tft.setTextSize(1);
         tft.setTextColor(ILI9341_BLACK);
@@ -349,7 +333,7 @@ void compactCard() {
         tft.setTextSize(2);
         tft.print(element.symbol);
         tft.setCursor(0, 80);
-        //tft.setCursor((displayconsts::tft_width - sidebar)/3, displayconsts::tft_height/5);
+        
         tft.setTextSize(1);
         tft.print(element.name);
         
@@ -540,6 +524,129 @@ The point of this function is to send an acknowledgement to the server.
 }
 
 
+int getSearchResults(String arr[][2]) {
+    String n;
+    uint32_t start = millis();
+    while (true) {
+        if (millis() - start > 5000) {
+            failScreen();
+
+            return -1;  // timeout
+        }
+        String n_char = read_word(100);
+        if (n_char == "N") {
+            sendAck();
+            n = read_value(100);
+            for (int i = 0; i < n.toInt(); i++) {
+                String p = read_word(100);
+                if (p == "P") {
+                    sendAck();
+                    arr[i][0] = read_word(100);
+                    arr[i][1] = read_value(100);
+                } else {
+                    continue; // retry request
+                }
+            }
+            break;
+        } else {
+            Serial.flush();
+            continue;  // retry request   
+        }
+    }
+    return n.toInt();
+}
+
+
+void waitingScreen() {
+    blankCard();
+    tft.fillRect(20, 20, displayconsts::tft_width - sidebar - 40, displayconsts::tft_height - 40, ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(45, 80);
+    tft.print("Please enter your");
+    tft.setCursor(40,120);
+    tft.print("element of choice");
+    tft.setCursor(55, 160);
+    tft.print("in the terminal");
+
+}
+
+void noMatchScreen() {
+    blankCard();
+    tft.fillRect(20, 50, displayconsts::tft_width - sidebar - 40, displayconsts::tft_height - 100, ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(50, 120);
+    tft.print("No match found");
+    delay(1500);
+}
+
+void failScreen() {
+    blankCard();
+    tft.fillRect(20, 50, displayconsts::tft_width - sidebar - 40, displayconsts::tft_height - 100, ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(60, 120);
+    tft.print("Search Failed");
+    delay(1500);
+}
+
+int searchScreen(String arr[][2]) {
+    blankCard();  // reset card
+    
+    /*Search box*/
+    tft.fillRect(20, 20, displayconsts::tft_width - sidebar - 40, 30, ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(45, 40);
+    tft.print("Matched Elements");
+
+    int startingPoints[4][2] = {{10,65}, {10, 150}, {130, 65}, {130, 150}};
+    int border = 2;
+    int width = 100;
+    int height = 70;
+
+    /*draw boxes*/
+    for (int i = 0; i < 4; i++) {
+        tft.fillRect(startingPoints[i][0], startingPoints[i][1], width, height, ILI9341_BLACK);
+        tft.fillRect(startingPoints[i][0] + border, startingPoints[i][1] + border, width - 2*border, height - 2*border, ILI9341_WHITE);
+    }
+
+    /*label boxes with search results*/
+
+    int labelPoints[4][2] = {{15, 105}, {15, 190}, {140, 105}, {140, 190}};
+    tft.setTextColor(ILI9341_BLACK);
+    for (int i = 0; i < 4; i++) {
+        tft.setCursor(labelPoints[i][0], labelPoints[i][1]);
+        tft.print(arr[i][1]);
+    }
+
+    while (true) {
+        TSPoint touch = ts.getPoint();
+        if (touch.z < MINPRESSURE || touch.z > MAXPRESSURE) {
+            continue;
+        }
+        int16_t touched_x = map(touch.y, TS_MINY, TS_MAXY, displayconsts::tft_width, 0);
+        int16_t touched_y = map(touch.x, TS_MINX, TS_MAXX, 0, displayconsts::tft_height);
+        if (touched_x < startingPoints[0][0] + width && touched_x > startingPoints[0][0]) {
+            if (touched_y < startingPoints[0][1] + height && touched_y > startingPoints[0][1]) {
+                // top left box
+                return arr[0][0].toInt();
+                
+            } else if (touched_y < startingPoints[1][1] + height && touched_y > startingPoints[1][1]) {
+                // bottom left box
+                return arr[1][0].toInt();
+            }    
+        } else if (touched_x > startingPoints[2][0] && touched_x < startingPoints[2][0] + width) {
+            if (touched_y < startingPoints[2][1] + height && touched_y > startingPoints[2][1]) {
+                // top right box
+                return arr[2][0].toInt();
+            } else if (touched_y < startingPoints[3][1] + height && touched_y > startingPoints[3][1])  {
+                // bottom right box
+                return arr[3][0].toInt();
+            }
+        }
+    }
+
+}
+
+
 void clientCom() {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The clientCom function takes the parameters.
@@ -552,23 +659,41 @@ The point of this function is to process the communication between the Arduino
 and the server. It reads in the waypoints and stores them in shared.waypoints.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     while (true) {
+        Serial.flush();
         bool timeout = false;
         uint32_t startTime = millis();
         if (!search) {
             sendRequest();  // send the request
             timeout = checkTimeout(timeout, 1000, startTime);
         } else {
-            searchRequest();
+            waitingScreen();
+            searchRequest();  // send search request
+
+            /*Read in search predictions*/
             timeout = checkTimeout(timeout, 10000, startTime);
+            String arr[4][2];  // array to hold 4 predictions
+            
+            int n = getSearchResults(arr);
+            if (n > 1) {
+                cardNum = searchScreen(arr);
+            } else if (n == 1) {
+                cardNum = arr[0][0].toInt();
+                //break;
+            } else {
+                if (n != -1) {
+                    noMatchScreen();
+                }
+            }
+            search = false;
+            continue;
+            
         }
 
-        // store path length in shared.num_waypoints
         if (Serial.available() && !timeout) {
             for (int count = 1; count <= 25; count ++) {
                 String letter = read_word(100); // read in the letter
                 if (letter == "C") {
                     Serial.read();  // read in space
-                    // reading in the number of waypoints
                     String num = read_word(100);
                     if (num.toInt() != count) {
                         timeout = true;
@@ -585,7 +710,7 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             }
         }
         if (timeout) {
-            read_value(10);
+            read_value(10);  // reading in any junk
             continue;  // retry request
         } else {
             break;
