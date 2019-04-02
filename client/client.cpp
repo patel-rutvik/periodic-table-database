@@ -540,7 +540,7 @@ int getSearchResults(String arr[][2]) {
     String n;
     uint32_t start = millis();
     while (true) {
-        if (millis() - start > 5000) {
+        if (millis() - start > 3000) {
             failScreen();
 
             return -1;  // timeout

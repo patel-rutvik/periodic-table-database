@@ -18,6 +18,13 @@ using namespace std;
 stack<pair<string, string>> predictions;  // vector to store search predictions
 SerialPort port("/dev/ttyACM0");
 
+// Alphabet size (# of symbols)
+#define NUM_LETTERS 26
+
+// Converts key current character into index
+// use only 'a' through 'z' and lower case
+#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
+
 struct Element {
     string atomNum;
     string name;
@@ -66,20 +73,10 @@ struct elementHash {
 Element findName(unordered_set<Element, elementHash>& elements, string name);
 
 
-//#include<bits/stdc++.h>
-using namespace std;
-
-// Alphabet size (# of symbols)
-#define ALPHABET_SIZE (26)
-
-// Converts key current character into index
-// use only 'a' through 'z' and lower case
-#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
-
 // trie node
 struct TrieNode
 {
-    struct TrieNode *children[ALPHABET_SIZE];
+    struct TrieNode *children[NUM_LETTERS];
 
     // isWordEnd is true if the node represents
     // end of a word
@@ -92,57 +89,56 @@ struct TrieNode *getNode(void)
     struct TrieNode *pNode = new TrieNode;
     pNode->isWordEnd = false;
 
-    for (int i = 0; i < ALPHABET_SIZE; i++) {
+    for (int i = 0; i < NUM_LETTERS; i++) {
         pNode->children[i] = NULL;
     }
 
     return pNode;
-}
+};
 
 // If not present, inserts key into trie. If the
 // key is prefix of trie node, just marks leaf node
 void insert(struct TrieNode *root, const string key)
 {
-    struct TrieNode *pCrawl = root;
+    struct TrieNode *pointSearch = root;
 
-    for (int level = 0; level < key.length(); level++)
+    for (unsigned int level = 0; level < key.length(); level++)
     {
         int index = CHAR_TO_INDEX(key[level]);
-        if (!pCrawl->children[index]) {
-            pCrawl->children[index] = getNode();
+        if (!pointSearch->children[index]) {
+            pointSearch->children[index] = getNode();
         }
 
-        pCrawl = pCrawl->children[index];
+        pointSearch = pointSearch->children[index];
     }
 
     // mark last node as leaf
-    pCrawl->isWordEnd = true;
+    pointSearch->isWordEnd = true;
 }
 
 // Returns true if key presents in trie, else false
 bool search(struct TrieNode *root, const string key)
 {
-    int length = key.length();
-    struct TrieNode *pCrawl = root;
-    for (int level = 0; level < length; level++)
+    struct TrieNode *pointSearch = root;
+    for (unsigned int level = 0; level < key.length(); level++)
     {
         int index = CHAR_TO_INDEX(key[level]);
 
-        if (!pCrawl->children[index]) {
+        if (!pointSearch->children[index]) {
             return false;
         }
 
-        pCrawl = pCrawl->children[index];
+        pointSearch = pointSearch->children[index];
     }
 
-    return (pCrawl != NULL && pCrawl->isWordEnd);
+    return (pointSearch != NULL && pointSearch->isWordEnd);
 }
 
 // Returns 0 if current node has a child
 // If all children are NULL, return 1.
 bool isLastNode(struct TrieNode* root)
 {
-    for (int i = 0; i < ALPHABET_SIZE; i++)
+    for (int i = 0; i < NUM_LETTERS; i++)
         if (root->children[i])
             return 0;
     return 1;
@@ -232,7 +228,7 @@ void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Ele
     if (isLastNode(root))
         return;
 
-    for (int i = 0; i < ALPHABET_SIZE; i++)
+    for (int i = 0; i < NUM_LETTERS; i++)
     {
         if (root->children[i])
         {
@@ -251,9 +247,9 @@ void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Ele
 }
 
 // print suggestions for given query prefix.
-int getSearchResults(TrieNode* root, const string query,  unordered_set<Element, elementHash>& elements)
+void getSearchResults(TrieNode* root, const string query,  unordered_set<Element, elementHash>& elements)
 {
-    struct TrieNode* pCrawl = root;
+    struct TrieNode* pointSearch = root;
 
     // Check if prefix is present and find the
     // the node (of last level) with last character
@@ -265,18 +261,18 @@ int getSearchResults(TrieNode* root, const string query,  unordered_set<Element,
         int index = CHAR_TO_INDEX(query[level]);
 
         // no string in the Trie has this prefix
-        if (!pCrawl->children[index])
-            return 0;
+        if (!pointSearch->children[index])
+            return;
 
-        pCrawl = pCrawl->children[index];
+        pointSearch = pointSearch->children[index];
     }
 
     // If prefix is present as a word.
-    bool isWord = (pCrawl->isWordEnd == true);
+    bool isWord = (pointSearch->isWordEnd == true);
 
     // If prefix is last node of tree (has no
     // children)
-    bool isLast = isLastNode(pCrawl);
+    bool isLast = isLastNode(pointSearch);
 
     // If prefix is present as a word, but
     // there is no subtree below the last
@@ -292,7 +288,7 @@ int getSearchResults(TrieNode* root, const string query,  unordered_set<Element,
         
         predictions.push(temp_pair);  // adding pair to stack
         
-        return -1;
+        return;
     }
 
     // If there are are nodes below last
@@ -300,8 +296,8 @@ int getSearchResults(TrieNode* root, const string query,  unordered_set<Element,
     if (!isLast)
     {
         string prefix = query;
-        suggestionsRec(pCrawl, prefix, elements);
-        return 1;
+        suggestionsRec(pointSearch, prefix, elements);
+        return;
     }
 }
 
