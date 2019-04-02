@@ -339,6 +339,18 @@ void compactCard() {
         
         tft.setCursor(0, 110);
         tft.print(element.mass);
+
+        tft.setCursor(0, 140);
+        tft.print(element.phase);
+
+        tft.setCursor(0, 170);
+        tft.print(element.type);
+
+        tft.setCursor(0, 200);
+        tft.print(element.founder);
+
+        tft.setCursor(0, 230);
+        tft.print(element.year);
     } else {
         backCard();
     }    
