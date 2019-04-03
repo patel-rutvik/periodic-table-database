@@ -19,7 +19,7 @@ $(EXC): $(OBJS)
 serialport.o: serialport.h
 	$(CC) serialport.cpp -o serialport.o $(CFLAGS)
 
-server.o: types.h server.cpp
+server.o: types.h server.cpp trie.h element.h
 	$(CC) server.cpp -o server.o $(CFLAGS)
 
 # removes the .o and executable files from the directory

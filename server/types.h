@@ -2,147 +2,35 @@
 #define TYPES_H
 
 #include "serialport.h"
+#include "element.h"
 #include <fstream>  // for file
 #include <iostream>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <stack>
-#include <utility>
+#include <utility>  // for pair
 #include <sstream>
 #include <algorithm>
 #include <string.h>
+#include "trie.h"
 
 using namespace std;
 
-vector<pair<string, string>> predictions;  // vector to store search predictions
+bool sendFailed = false;
+string nameRequest = "";
 SerialPort port("/dev/ttyACM0");
 
-// Alphabet size (# of symbols)
-#define NUM_LETTERS 26
-
-// Converts key current character into index
-// use only 'a' through 'z' and lower case
-#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
-
-struct Element {
-    string atomNum;
-    string name;
-    string symbol;
-    string mass;
-    string neutrons;
-    string protons;
-    string electrons;
-    string period;
-    string group;
-    string phase;
-    string radioactive;
-    string natural;
-    string type;
-    string atomRadius;
-    string electroNeg;
-    string firstIon;
-    string density;
-    string mp;
-    string bp;
-    string numIsotopes;
-    string founder;
-    string year;
-    string heatCap;
-    string numShells;
-    string numValence;
-
-    /*Operator overloading and hashing method is a modified implementation from:
-    https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom
-    -class-type-as-the-key?noredirect=1&lq=1 
-    From user: jogojapan @ June 10, 2013 */
-    bool operator==(const Element &thing) const {
-        // overloading the == operator
-        return (atomNum == thing.atomNum);
-    }
-};
-
-struct elementHash {
-    // This is the custom hash to accomodate for the unique ID's to hash in
-    // the StudentRecord struct
-    size_t operator()(Element const& element) const {
-        // hash the id, and return
-        return hash<string>()(element.atomNum);
-    }
-};
-Element findName(unordered_set<Element, elementHash>& elements, string name);
 
 
-// trie node
-struct TrieNode
-{
-    struct TrieNode *children[NUM_LETTERS];
+vector<string> split(string str, char delim);
+void readFile(string filename, unordered_set<Element, elementHash>& table);
+Element findElement( unordered_set<Element, elementHash>& elements, string num);
+Element findName( unordered_set<Element, elementHash>& elements, string name);
+string getProperties(Element requestElement, int index);
+bool sendElement(unordered_set<Element, elementHash>& elements, Element& requestElement);
+void processRequest(unordered_set<Element, elementHash>& elements);
 
-    // isWordEnd is true if the node represents
-    // end of a word
-    bool isWordEnd;
-};
 
-// Returns new trie node (initialized to NULLs)
-struct TrieNode *getNode(void)
-{
-    struct TrieNode *pNode = new TrieNode;
-    pNode->isWordEnd = false;
-
-    for (int i = 0; i < NUM_LETTERS; i++) {
-        pNode->children[i] = NULL;
-    }
-
-    return pNode;
-};
-
-// If not present, inserts key into trie. If the
-// key is prefix of trie node, just marks leaf node
-void insert(struct TrieNode *root, const string key)
-{
-    struct TrieNode *pointSearch = root;
-
-    for (unsigned int level = 0; level < key.length(); level++)
-    {
-        int index = CHAR_TO_INDEX(key[level]);
-        if (!pointSearch->children[index]) {
-            pointSearch->children[index] = getNode();
-        }
-
-        pointSearch = pointSearch->children[index];
-    }
-
-    // mark last node as leaf
-    pointSearch->isWordEnd = true;
-}
-
-// Returns true if key presents in trie, else false
-bool search(struct TrieNode *root, const string key)
-{
-    struct TrieNode *pointSearch = root;
-    for (unsigned int level = 0; level < key.length(); level++)
-    {
-        int index = CHAR_TO_INDEX(key[level]);
-
-        if (!pointSearch->children[index]) {
-            return false;
-        }
-
-        pointSearch = pointSearch->children[index];
-    }
-
-    return (pointSearch != NULL && pointSearch->isWordEnd);
-}
-
-// Returns 0 if current node has a child
-// If all children are NULL, return 1.
-bool isLastNode(struct TrieNode* root)
-{
-    for (int i = 0; i < NUM_LETTERS; i++)
-        if (root->children[i])
-            return 0;
-    return 1;
-}
 
 void sendPredictions() {
     string ack, output;
@@ -206,99 +94,6 @@ void sendPredictions() {
             predictions.clear();
             break;
         }
-    }
-}
-
-// Recursive function to print auto-suggestions for given
-// node.
-void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Element, elementHash>& elements)
-{
-    // found a string in Trie with the given prefix
-    if (root->isWordEnd)
-    {
-        cout << currPrefix << endl;
-
-        Element element = findName(elements, currPrefix);
-        pair<string, string> temp_pair = make_pair(element.atomNum, element.name);
-        if (predictions.size() < 4) {
-            predictions.push_back(temp_pair);  // adding pair to stack
-        }
-    }
-
-    // All children struct node pointers are NULL
-    if (isLastNode(root))
-        return;
-
-    for (int i = 0; i < NUM_LETTERS; i++)
-    {
-        if (root->children[i])
-        {
-            // append current character to currPrefix string
-            currPrefix.push_back(97 + i);
-
-            // recur over the rest
-            suggestionsRec(root->children[i], currPrefix, elements);
-            
-            //should remove the last index, inserted in this loop.
-            if (!currPrefix.empty()) {
-                currPrefix.pop_back();
-            }
-        }
-    }
-}
-
-// print suggestions for given query prefix.
-void getSearchResults(TrieNode* root, const string query,  unordered_set<Element, elementHash>& elements)
-{
-    struct TrieNode* pointSearch = root;
-
-    // Check if prefix is present and find the
-    // the node (of last level) with last character
-    // of given string.
-    int level;
-    int n = query.length();
-    for (level = 0; level < n; level++)
-    {
-        int index = CHAR_TO_INDEX(query[level]);
-
-        // no string in the Trie has this prefix
-        if (!pointSearch->children[index])
-            return;
-
-        pointSearch = pointSearch->children[index];
-    }
-
-    // If prefix is present as a word.
-    bool isWord = (pointSearch->isWordEnd == true);
-
-    // If prefix is last node of tree (has no
-    // children)
-    bool isLast = isLastNode(pointSearch);
-
-    // If prefix is present as a word, but
-    // there is no subtree below the last
-    // matching node.
-    cout << "matches: " << endl;
-    if (isWord && isLast)
-    {
-        cout << "Only one match" << endl;
-        cout << query << endl;
-
-        Element element = findName(elements, query);
-        pair<string, string> temp_pair = make_pair(element.atomNum, element.name);
-        
-        predictions.push_back(temp_pair);  // adding pair to stack
-        
-        return;
-    }
-
-    // If there are are nodes below last
-    // matching character.
-    if (!isLast)
-    {
-        string prefix = query;
-        suggestionsRec(pointSearch, prefix, elements);
-        return;
     }
 }
 

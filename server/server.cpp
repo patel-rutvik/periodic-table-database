@@ -1,12 +1,8 @@
 #include "types.h"
 
-
-
-
 struct TrieNode *root = getNode();
 
-bool sendFailed = false;
-string nameRequest = "";
+
 // This is a modified implementation of split from:
 // https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
 vector<string> split(string str, char delim) {
@@ -114,14 +110,12 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
         cout << "ERROR. Unable to open the file " << filename << "." << endl;
     }
     file.close();  // closing the file
-    //trie->trieWalk();
 }
 
 
 Element findElement( unordered_set<Element, elementHash>& elements, string num) {
     for (auto i : elements) {
         if (i.atomNum == num) {
-            cout << "Found element" << endl;
             return i;
         }
     }
@@ -130,14 +124,13 @@ Element findElement( unordered_set<Element, elementHash>& elements, string num) 
 Element findName( unordered_set<Element, elementHash>& elements, string name) {
     for (auto i : elements) {
         if (i.name == name) {
-            //cout << "Found element" << endl;
             return i;
         }
     }
 }
 
 
-string printProperties(Element requestElement, int index) {
+string getProperties(Element requestElement, int index) {
     switch (index) {
         case 1: return requestElement.atomNum;
         case 2: return requestElement.name;
@@ -168,7 +161,7 @@ string printProperties(Element requestElement, int index) {
 }
 
 
-bool sendElement( unordered_set<Element, elementHash>& elements, Element& requestElement) {
+bool sendElement(unordered_set<Element, elementHash>& elements, Element& requestElement) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The printWaypoints function takes the parameters:
     tree     : the search tree with respective to the starting vertex
@@ -185,9 +178,8 @@ lat and lon values, enroute to the end vertex.
     ack = "A\n";
     for (int i = 1; i <= 25; i++) {
         if (ack == "A\n") {
-            
             /*print out the waypoint coordinates*/
-            output = printProperties(requestElement, i);
+            output = getProperties(requestElement, i);
             port.writeline("C ");
             port.writeline(to_string(i));
             port.writeline(" ");
@@ -203,7 +195,6 @@ lat and lon values, enroute to the end vertex.
     cout << "sent last element" << endl;
     // receive acknowledgement
     port.readline(100);
-
     // indicating end of request
     sendFailed = false;
     return false;  // no timeout
@@ -242,7 +233,7 @@ by sending the number of waypoints and the waypoints themselves.
         if (!sendFailed) {
             cout << "Enter element name here: ";            
             cin >> nameRequest;
-            nameRequest[0] = tolower(nameRequest[0]);
+            nameRequest[0] = tolower(nameRequest[0]);  // Making lowercase
         }
         getSearchResults(root, nameRequest, elements);
         sendPredictions();
@@ -253,7 +244,6 @@ by sending the number of waypoints and the waypoints themselves.
             sendFailed = false;
         }
     }
-
 }
 
 

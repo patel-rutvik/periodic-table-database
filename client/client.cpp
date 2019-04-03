@@ -1,39 +1,5 @@
 #include "util.h"
-#include "lcd_image.h"
 #include "types.h"
-
-
-#define YP A2  // must be an analog pin, use "An" notation!
-#define XM A3  // must be an analog pin, use "An" notation!
-#define YM  5  // can be a digital pin
-#define XP  4  // can be a digital pin
-
-#define TS_MINX 150
-#define TS_MINY 120
-#define TS_MAXX 920
-#define TS_MAXY 940
-#define MINPRESSURE   10
-#define MAXPRESSURE 1000
-
-int currentLayout = 1;
-TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-int sidebar = 80;  // size of sidebar
-bool touched = false;
-int cardNum = 1;
-bool flipped = false;
-bool search = false;
-Element element;
-uint8_t left_pushed;
-uint8_t right_pushed;
-
-void drawCard();
-void clientCom();
-void minimalCard();
-void classicCard();
-void compactCard();
-void nextCard();
-void searchRequest();
-void failScreen();
 
 
 void setup() {
@@ -122,9 +88,10 @@ It does not return any parameters.
 
 The point of this function is to...
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    // Read buttons
     left_pushed = (digitalRead(clientpins::left_pin) == HIGH);
     right_pushed = (digitalRead(clientpins::right_pin) == HIGH);
-    delay(100);
+    delay(100);  // Button bounce
     if (left_pushed && cardNum > 1) {
         cardNum--;
         nextCard();
@@ -151,7 +118,7 @@ The point of this function is to...
     int16_t touched_x = map(touch.y, TS_MINY, TS_MAXY, displayconsts::tft_width, 0);
     int16_t touched_y = map(touch.x, TS_MINX, TS_MAXX, 0, displayconsts::tft_height);
     if (touched_x < displayconsts::tft_width - 48) {
-        //flip card here...
+        //flip card if screen is pressed
         if (!flipped) {
             flipped = true;
         } else {
@@ -166,10 +133,10 @@ The point of this function is to...
             if (currentLayout > 3) {
                 currentLayout = 1;
             }
-            //updateButtons(0);
             drawButtons();
             drawCard();
         } else if (touched_y >= displayconsts::tft_height/2 + 2) {
+            // Search
             search = true;
             nextCard();
             search = false;
@@ -180,8 +147,6 @@ The point of this function is to...
 
 
 void blankCard() {
-    // blank white card
-    //tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, ILI9341_WHITE);
     if (element.type == "Nonmetal") {  // Oxygen
         tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(128, 235, 128));
     } else if (element.type == "Transition Metal") {  // Gold
@@ -207,13 +172,13 @@ void blankCard() {
     } else {
         tft.fillRect(0, 0, displayconsts::tft_width - sidebar, displayconsts::tft_height, tft.color565(255, 255, 255));
     }
-
     /* draw buttons */
     drawButtons();
 }
 
 
 void backCard() {
+    // Display back of card
     tft.setTextColor(ILI9341_BLACK);
     tft.setTextSize(1);
     tft.setCursor(0,15);
@@ -269,20 +234,16 @@ void backCard() {
 void minimalCard() {
     blankCard();
     if (!flipped) {
-        
         tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
         tft.setCursor(0, 25);
         tft.print(element.atomNum);
-        
         tft.setCursor(0, 90);
         tft.setTextSize(4);
         tft.print(element.symbol);
         tft.setCursor(0, 130);
         tft.setTextSize(2);
-        tft.print(element.name);
-        
-        
+        tft.print(element.name);        
     } else {
         backCard();
     }
@@ -292,7 +253,6 @@ void minimalCard() {
 void classicCard() {
     blankCard();
     if (!flipped) {
-        
         tft.setTextColor(ILI9341_BLACK);
         tft.setTextSize(2);
         tft.setTextColor(ILI9341_BLACK);
@@ -305,7 +265,6 @@ void classicCard() {
         tft.setTextSize(4);
         tft.print(element.symbol);
         tft.setCursor(0, 130);
-        
         tft.setTextSize(2);
         tft.print(element.name);
         tft.setTextSize(1);
@@ -320,7 +279,6 @@ void classicCard() {
 void compactCard() {
     blankCard();
     if (!flipped) {
-        
         tft.setTextColor(ILI9341_BLACK);
         tft.setTextSize(1);
         tft.setTextColor(ILI9341_BLACK);
@@ -333,22 +291,16 @@ void compactCard() {
         tft.setTextSize(2);
         tft.print(element.symbol);
         tft.setCursor(0, 80);
-        
         tft.setTextSize(1);
         tft.print(element.name);
-        
         tft.setCursor(0, 110);
         tft.print(element.mass);
-
         tft.setCursor(0, 140);
         tft.print(element.phase);
-
         tft.setCursor(0, 170);
         tft.print(element.type);
-
         tft.setCursor(0, 200);
         tft.print(element.founder);
-
         tft.setCursor(0, 230);
         tft.print(element.year);
     } else {
@@ -368,12 +320,14 @@ void drawCard() {
 }
 
 void nextCard() {
+    // Gets next card from server
     clientCom();
     cardNum = element.atomNum.toInt();
     drawCard();
 }
 
 void assignValue(int index, String value) {
+    // Assigning each value to the element struct
     switch (index) {
         case 1: element.atomNum = value;
         case 2: element.name = value;
@@ -498,9 +452,7 @@ It returns no parameters.
 The point of this function is to send the starting and ending points from the
 Arduino to the server.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    Serial.flush();
     Serial.println("S");
-    Serial.flush();
 }
 
 
@@ -515,11 +467,9 @@ It returns no parameters.
 The point of this function is to send the starting and ending points from the
 Arduino to the server.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    Serial.flush();
     Serial.print("R ");
     Serial.print((String)cardNum);
     Serial.println(" ");
-    Serial.flush();
 }
 
 
@@ -537,9 +487,11 @@ The point of this function is to send an acknowledgement to the server.
 
 
 int getSearchResults(String arr[][2]) {
+    // Gets the resulst from the server about the search
     String n;
     uint32_t start = millis();
     while (true) {
+        // Check if timeout
         if (millis() - start > 5000) {
             failScreen();
             return -1;  // timeout
@@ -553,8 +505,8 @@ int getSearchResults(String arr[][2]) {
                 String p = read_word(100);
                 if (p == "P") {
                     sendAck();
-                    arr[i][0] = read_word(100);
-                    arr[i][1] = read_value(100);
+                    arr[i][0] = read_word(100);  // atomNum
+                    arr[i][1] = read_value(100);  // Name
                 } else {
                     failed = true;
                 }
@@ -658,9 +610,9 @@ int searchScreen(String arr[][2]) {
             }
         }
         if (selected >= 1 && selected <= 118) {
-            return selected;
+            return selected;  // Check if good selection
         } else {
-            return cardNum;
+            return cardNum;  // If failed return current cardNum
         }
     }
 
@@ -688,7 +640,6 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
         } else {
             waitingScreen();
             searchRequest();  // send search request
-
             /*Read in search predictions*/
             timeout = checkTimeout(timeout, 100000, startTime);
             String arr[4][2];  // array to hold 4 predictions
@@ -698,7 +649,6 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
                 cardNum = searchScreen(arr);
             } else if (n == 1) {
                 cardNum = arr[0][0].toInt();
-                //break;
             } else {
                 if (n != -1) {
                     noMatchScreen();
@@ -706,7 +656,6 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             }
             search = false;
             continue;
-            
         }
 
         if (Serial.available() && !timeout) {
@@ -742,7 +691,7 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
 int main() {
     setup();  // setup program
     welcomeScreen();  // display welcome screen
-    nextCard();
+    nextCard();  // Get initial card
     while (true) {
         getTouch();
     }

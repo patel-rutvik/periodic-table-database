@@ -27,6 +27,6 @@ struct Element {
     String heatCap;
     String numShells;
     String numValence;
-};
+} element;
 
 #endif /*TYPES_H*/
