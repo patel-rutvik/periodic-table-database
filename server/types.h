@@ -15,7 +15,7 @@
 
 using namespace std;
 
-stack<pair<string, string>> predictions;  // vector to store search predictions
+vector<pair<string, string>> predictions;  // vector to store search predictions
 SerialPort port("/dev/ttyACM0");
 
 // Alphabet size (# of symbols)
@@ -149,7 +149,7 @@ void sendPredictions() {
     int n = predictions.size();  // finding number of predictions generated
     clock_t start = clock();
     while (true) {
-        if ((clock() - start)/CLOCKS_PER_SEC > 3) {
+        if ((clock() - start)/CLOCKS_PER_SEC > 5) {
             break;
         }
         bool failed = false;
@@ -173,21 +173,24 @@ void sendPredictions() {
 
         /*Sending all the predicted elements*/
         for (int i = 0; i < n; i++) {
-            if (ack == "A\n" && !predictions.empty()) {
+            if (ack == "A\n") {
                 if (i > 0) {
                     cout << "ack received" << endl;
                 }
                 port.writeline("P");  //prediction character
                 port.writeline(" ");
-                pair<string, string> temp = predictions.top();
+                pair<string, string> temp = predictions[i];
                 port.writeline(temp.first);  // sending atomic num
                 port.writeline(" ");
                 port.writeline(temp.second);  // sending name
                 port.writeline("\n");  // sending end line
                 cout << "P " << temp.first << " " << temp.second << endl;
                 
-                predictions.pop();  // removing the element we just sent
+                //predictions.pop();  // removing the element we just sent
                 ack = port.readline(100);  // receive ack
+                if (ack != "A\n") {
+                    failed = true;
+                }
             } else {
                 if (i > 0) {
                     cout << "Ack for prediction not received" << endl;
@@ -198,11 +201,9 @@ void sendPredictions() {
         }
 
         /*empty stack*/
-        while (!predictions.empty()) {
-            predictions.pop();
-        }
         if (!failed) {
             cout << "Sent all predictions successfully..." << endl;
+            predictions.clear();
             break;
         }
     }
@@ -220,7 +221,7 @@ void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Ele
         Element element = findName(elements, currPrefix);
         pair<string, string> temp_pair = make_pair(element.atomNum, element.name);
         if (predictions.size() < 4) {
-            predictions.push(temp_pair);  // adding pair to stack
+            predictions.push_back(temp_pair);  // adding pair to stack
         }
     }
 
@@ -286,7 +287,7 @@ void getSearchResults(TrieNode* root, const string query,  unordered_set<Element
         Element element = findName(elements, query);
         pair<string, string> temp_pair = make_pair(element.atomNum, element.name);
         
-        predictions.push(temp_pair);  // adding pair to stack
+        predictions.push_back(temp_pair);  // adding pair to stack
         
         return;
     }

@@ -540,7 +540,7 @@ int getSearchResults(String arr[][2]) {
     String n;
     uint32_t start = millis();
     while (true) {
-        if (millis() - start > 3000) {
+        if (millis() - start > 5000) {
             failScreen();
             return -1;  // timeout
         }
@@ -690,7 +690,7 @@ and the server. It reads in the waypoints and stores them in shared.waypoints.
             searchRequest();  // send search request
 
             /*Read in search predictions*/
-            timeout = checkTimeout(timeout, 10000, startTime);
+            timeout = checkTimeout(timeout, 100000, startTime);
             String arr[4][2];  // array to hold 4 predictions
             
             int n = getSearchResults(arr);
