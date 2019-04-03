@@ -1,5 +1,77 @@
-README
+Names: Rutvik Patel and Kaden Dreger
+IDs  : 1530012, 1528632
+CMPUT 275 Winter 2019
+Final Project: Periodic Table Database
+------------------------------------------------------------------
+Included files:
+    */server
+      * server.cpp
+      * serialport.cpp
+      * serialport.h
+      * trie.h
+      * types.h
+      * elements.h
+      * Makefile
+      * table-data.txt
+    */client
+      * client.cpp
+      * types.h
+      * util.h
+      * circuit-wiring.txt
+      * Makefile
+    * README
 
-Sources:
-    Periodic table data found from: https://gist.github.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee
-    or: https://github.com/andrejewski/periodic-table/blob/master/data.csv
+Wiring Instructions:
+  The wiring instructions can be found within the circuit-wiring.txt, but will also be iterated here:
+      TFT Display:
+
+            The display pins are numbered left to right in this document when they are being viewed
+            with their labels showing rightside up. Note you do not require the touchscreen for this assignment,
+            so it is probably a lot easier to not wire the Y+/X+/Y-/X- pins.
+
+            Display Pin     Arduino Mega Pin
+            --------------------------------
+            1 GND           BB GND bus
+            2 Vin           BB Vcc (+ive) bus
+
+            4 CLK           Pin 52
+            5 MISO          Pin 50
+            6 MOSI          Pin 51
+            7 CS            Pin 10
+            8 D/C           Pin 9
+
+            19 CCS          Pin 6
+
+            Left and Right buttons:
+
+            Button          Arduino Mega Pin
+            Left Pin        Pin 3
+            Right Pin       Pin 2
+
+
+Makefile (server) Targets:
+  * make (server)     : builds the project and generates the server executable
+  * make serialport.o : compiles serialport.cpp into its respective object (.o) file
+  * make server.o     : compiles server.cpp into its respective object (.o) file
+  * make clean        : removes the .o and executable files from the directory
+  * make help         : prints out information about the targets of the make file
+
+Running Instructions:
+    In order to correctly run the program, navigate to the correct directory in terminal with the source files. 
+    Client:
+      Proceed to the client directory, and use the command 'make upload' to upload the program to the Arduino. 
+    Server:
+      Then, proceed to the server directory and use the command 'make' to build the project. Then use the command './server' in order to run the server executable, and allow the server to come online.
+
+How to use:
+    Once the program is uploaded to the Arduino and the server is brought online, the following user actions are permitted:
+
+
+Notes and Assumptions:
+    This program assumes that the user will follow the exact input guidelines as shown above. The user must also strictly follow the running instructions stated above. In this case where the server is running before the program is uploaded to the Arduino, the compiler process will timeout. Also, the user must not access serial-mon at any time as it affects the data trasnfer between the client and server programs.
+
+Modified Code:
+  server.cpp:
+    * method for reading in files in the 'readGraph' function found from the site: cplusplus.com/doc/tutorial/files/
+  client.cpp:
+
