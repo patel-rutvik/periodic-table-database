@@ -149,7 +149,7 @@ void sendPredictions() {
     int n = predictions.size();  // finding number of predictions generated
     clock_t start = clock();
     while (true) {
-        if ((clock() - start)/CLOCKS_PER_SEC > 5) {
+        if ((clock() - start)/CLOCKS_PER_SEC > 3) {
             break;
         }
         bool failed = false;

@@ -542,9 +542,9 @@ int getSearchResults(String arr[][2]) {
     while (true) {
         if (millis() - start > 3000) {
             failScreen();
-
             return -1;  // timeout
         }
+        bool failed = false;
         String n_char = read_word(100);
         if (n_char == "N") {
             sendAck();
@@ -556,10 +556,14 @@ int getSearchResults(String arr[][2]) {
                     arr[i][0] = read_word(100);
                     arr[i][1] = read_value(100);
                 } else {
-                    continue; // retry request
+                    failed = true;
                 }
             }
-            break;
+            if (failed) {
+                continue;
+            } else {
+                break;
+            }
         } else {
             Serial.flush();
             continue;  // retry request   
@@ -628,7 +632,7 @@ int searchScreen(String arr[][2]) {
         tft.setCursor(labelPoints[i][0], labelPoints[i][1]);
         tft.print(arr[i][1]);
     }
-
+    int selected;
     while (true) {
         TSPoint touch = ts.getPoint();
         if (touch.z < MINPRESSURE || touch.z > MAXPRESSURE) {
@@ -639,20 +643,24 @@ int searchScreen(String arr[][2]) {
         if (touched_x < startingPoints[0][0] + width && touched_x > startingPoints[0][0]) {
             if (touched_y < startingPoints[0][1] + height && touched_y > startingPoints[0][1]) {
                 // top left box
-                return arr[0][0].toInt();
-                
+                selected = arr[0][0].toInt();
             } else if (touched_y < startingPoints[1][1] + height && touched_y > startingPoints[1][1]) {
                 // bottom left box
-                return arr[1][0].toInt();
-            }    
+                selected =  arr[1][0].toInt();
+            }
         } else if (touched_x > startingPoints[2][0] && touched_x < startingPoints[2][0] + width) {
             if (touched_y < startingPoints[2][1] + height && touched_y > startingPoints[2][1]) {
                 // top right box
-                return arr[2][0].toInt();
+                selected =  arr[2][0].toInt();
             } else if (touched_y < startingPoints[3][1] + height && touched_y > startingPoints[3][1])  {
                 // bottom right box
-                return arr[3][0].toInt();
+                selected = arr[3][0].toInt();
             }
+        }
+        if (selected >= 1 && selected <= 118) {
+            return selected;
+        } else {
+            return cardNum;
         }
     }
 
