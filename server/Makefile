@@ -4,7 +4,7 @@
 # Final Project: Periodic Table Database
 
 #  This makefile allows the user to link, compile and clean the files
-#  necessary to run dijkstra.cpp and server.cpp.
+#  necessary to run server.cpp.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 CC = g++ # compiler of choice
 OBJS = server.o serialport.o # object files generated
@@ -28,10 +28,8 @@ clean:
 
 # printing out the makefile target objectives
 help:
-	@echo 'make server    : builds the project and generates the server executable'
+	@echo 'make server       : builds the project and generates the server executable'
 	@echo 'make serialport.o : compiles serialport.cpp into its respective object (.o) file'
-	@echo 'make digraph.o : compiles digraph.cpp into its respective object (.o) file'
-	@echo 'make dijkstra.o: compiles dijkstra.cpp into its respective object (.o) file'
-	@echo 'make server.o  : compiles server.cpp into its respective object (.o) file'
-	@echo 'make clean     : removes the .o and executable files from the directory'
-	@echo 'make help      : prints out information about the targets of the make file'
+	@echo 'make server.o     : compiles server.cpp into its respective object (.o) file'
+	@echo 'make clean        : removes the .o and executable files from the directory'
+	@echo 'make help         : prints out information about the targets of the make file'

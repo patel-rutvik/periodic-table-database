@@ -1,3 +1,13 @@
+// This file is from class
+/*
+  Serial port class specifically set up for communication with Arduino Mega2560
+  in the Ubuntu VM used in CMPUT 275
+
+  Created by Zachary Friggstad, 2019
+  Ideas adapted from https://www.cmrr.umn.edu/~strupp/serial.html#config
+*/
+
+
 #include "serialport.h"
 #include <sys/types.h>
 #include <sys/stat.h>

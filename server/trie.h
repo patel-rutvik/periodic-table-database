@@ -35,6 +35,7 @@ void insert(struct TrieNode *root, const string key) {
         if (!pointSearch->children[index]) {
             pointSearch->children[index] = getNode();
         }
+        // Point to the next child
         pointSearch = pointSearch->children[index];
     }
 
@@ -51,6 +52,7 @@ bool search(struct TrieNode *root, const string key) {
             // Key not present
             return false;
         }
+        // Point to the next child
         pointSearch = pointSearch->children[index];
     }
     // Key is present return true
@@ -68,7 +70,7 @@ bool lastWordNode(struct TrieNode* root) {
     return true;
 }
 
-void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Element, elementHash>& elements)
+void getSuggestions(struct TrieNode* root, string currPrefix,  unordered_set<Element, elementHash>& elements)
 {
     // found a string with the given prefix
     if (root->endWord) {
@@ -92,7 +94,7 @@ void suggestionsRec(struct TrieNode* root, string currPrefix,  unordered_set<Ele
             currPrefix.push_back(97 + i);
 
             // recurse over remaining
-            suggestionsRec(root->children[i], currPrefix, elements);
+            getSuggestions(root->children[i], currPrefix, elements);
             
             // should remove the last index, inserted in this loop.
             if (!currPrefix.empty()) {
@@ -136,7 +138,7 @@ void getSearchResults(TrieNode* root, const string query,  unordered_set<Element
     // More words can still be made
     if (!lastWord) {
         string prefix = query;
-        suggestionsRec(pointSearch, prefix, elements);  // Recurse over remaining
+        getSuggestions(pointSearch, prefix, elements);  // Recurse over remaining
         return;
     }
 }
