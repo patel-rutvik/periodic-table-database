@@ -28,6 +28,16 @@ abd return it as a vector.
 
 
 void readFile(string filename, unordered_set<Element, elementHash>& table) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The readFile function takes the parameters:
+    filename: the name of the file to be read in
+    table: the hash table the elements will be stored in
+
+It returns no parameters.
+
+The point of this function is to read in a given CSV file and store the data
+in a hash table as a struct.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /* method to open and read from files found from:
     cplusplus.com/doc/tutorial/files/             */
     ifstream file;  // file object
@@ -50,7 +60,7 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
             tempString[0] = tolower(tempString[0]);
             temp.name = tempString;
         
-            
+            // Inserting names into the search tree.
             insert(root, tempString);
             
             getline(file, token, delim);
@@ -113,7 +123,19 @@ void readFile(string filename, unordered_set<Element, elementHash>& table) {
 }
 
 
-Element findElement( unordered_set<Element, elementHash>& elements, string num) {
+Element findElement(unordered_set<Element, elementHash>& elements, string num) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The findElement function takes the parameters:
+    elements: the hash table to look through
+    num: the atomnum we are looking for
+
+It returns the parameters:
+    i: the element that was found
+
+The point of this function is to search through a hash table and find the
+element corresponding to the given atomic number. Once found that element is
+returned.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     for (auto i : elements) {
         if (i.atomNum == num) {
             return i;
@@ -121,7 +143,19 @@ Element findElement( unordered_set<Element, elementHash>& elements, string num) 
     }
 }
 
-Element findName( unordered_set<Element, elementHash>& elements, string name) {
+Element findName(unordered_set<Element, elementHash>& elements, string name) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The findName function takes the parameters:
+    elements: the hash table to look through
+    num: the name we are looking for
+
+It returns the parameters:
+    i: the element that was found
+
+The point of this function is to search through a hash table and find the
+element corresponding to the given name. Once found that element is
+returned.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     for (auto i : elements) {
         if (i.name == name) {
             return i;
@@ -131,6 +165,18 @@ Element findName( unordered_set<Element, elementHash>& elements, string name) {
 
 
 string getProperties(Element requestElement, int index) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The getProperties function takes the parameters:
+    requestElement: the element we are getting values from
+    index: the characteristic in the element
+
+It returns the parameters:
+    string: the property of that element
+
+The point of this function is to return a string of a specific property of the
+given element.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    // Switch statement is used due to its compact nature.
     switch (index) {
         case 1: return requestElement.atomNum;
         case 2: return requestElement.name;
@@ -163,16 +209,15 @@ string getProperties(Element requestElement, int index) {
 
 bool sendElement(unordered_set<Element, elementHash>& elements, Element& requestElement) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-The printWaypoints function takes the parameters:
-    tree     : the search tree with respective to the starting vertex
-    startVert: starting vertex
-    endVert  : end vertex
-    p        : a mapping b/w vertex ID's and their respective coordinates
+The sendElement function takes the parameters:
+    elements: the hash table containing all the elements
+    requestElement: the element to be sent
 
-It does not return any parameters.
+It returns the parameters:
+    bool: This indicates if there was a timeout
 
-The point of this function is to print the number of waypoints, along with their
-lat and lon values, enroute to the end vertex.
+The point of this function is to send the properties of the requested element
+to the arduino via the serial port.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     string ack, output;
     ack = "A\n";
@@ -204,13 +249,12 @@ lat and lon values, enroute to the end vertex.
 void processRequest(unordered_set<Element, elementHash>& elements) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The processRequest function takes the parameters:
-    graph: the Digraph created from the csv file
-    points: the points for each vertex
+    elements: the hash table created from the CSV
 
 It returns no parameters.
 
 The point of this function is to process the communication with the Arduino
-by sending the number of waypoints and the waypoints themselves.
+by sending the requested elements and handling search requests.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     bool timeout = false;
     string temp = port.readline(0);
