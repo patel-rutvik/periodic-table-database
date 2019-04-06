@@ -1,6 +1,19 @@
+/*
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Final Project: Periodic Table Database
+Names: Rutvik Patel, Kaden Dreger
+ID: 1530012, 1528632
+CCID: rutvik, kaden
+CMPUT 275 Winter 2018
+
+This program demonstrates a server-side program. It handles all
+computations and relays it to the server. It also communicates with the client
+side and sends the element in question.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*/
 #include "types.h"
 
-struct TrieNode *root = getNode();
+struct TrieNode *root = getNode();  // establishing the trie root nodes
 
 
 // This is a modified implementation of split from:
@@ -30,13 +43,13 @@ abd return it as a vector.
 void readFile(string filename, unordered_set<Element, elementHash>& table) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The readFile function takes the parameters:
-    filename: the name of the file to be read in
-    table: the hash table the elements will be stored in
+    filename: the name of the file to be read
+    table: the hash table to store the elements
 
 It returns no parameters.
 
-The point of this function is to read in a given CSV file and store the data
-in a hash table as a struct.
+The point of this function is to read in the CSV file and assign the values
+into the table.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /* method to open and read from files found from:
     cplusplus.com/doc/tutorial/files/             */
@@ -59,10 +72,7 @@ in a hash table as a struct.
             string tempString = token;
             tempString[0] = tolower(tempString[0]);
             temp.name = tempString;
-        
-            // Inserting names into the search tree.
             insert(root, tempString);
-            
             getline(file, token, delim);
             temp.symbol = token;
             getline(file, token, delim);
@@ -83,9 +93,9 @@ in a hash table as a struct.
             temp.radioactive = token;
             getline(file, token, delim);
             temp.natural = token;
-            getline(file, token, delim);  // metal            
-            getline(file, token, delim);  // nonmetal
-            getline(file, token, delim);  // metalloid
+            getline(file, token, delim);  // metal  - not used           
+            getline(file, token, delim);  // nonmetal - not used
+            getline(file, token, delim);  // metalloid - not used
             getline(file, token, delim);
             temp.type = token;
             getline(file, token, delim);
@@ -112,8 +122,7 @@ in a hash table as a struct.
             temp.numShells = token;
             getline(file, token);
             temp.numValence = token;
-
-            table.insert(temp);
+            table.insert(temp);  // insert the constructed element in the table
         }
     } else {
         /*Error message in case the file is not found. */
@@ -123,42 +132,40 @@ in a hash table as a struct.
 }
 
 
-Element findElement(unordered_set<Element, elementHash>& elements, string num) {
+Element findElement( unordered_set<Element, elementHash>& elements, string num) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The findElement function takes the parameters:
-    elements: the hash table to look through
-    num: the atomnum we are looking for
+    elements: the hash table holding all the elements
+    num: the atomic number to fine
 
 It returns the parameters:
-    i: the element that was found
+    i: the element that matches
 
-The point of this function is to search through a hash table and find the
-element corresponding to the given atomic number. Once found that element is
-returned.
+The point of this function is to find an element in the hash table based on the
+atomic number passed in.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    for (auto i : elements) {
-        if (i.atomNum == num) {
-            return i;
+    for (auto i : elements) {  // for i in elements...
+        if (i.atomNum == num) {  // if the atomic number matches num
+            return i;  // return that element
         }
     }
 }
 
-Element findName(unordered_set<Element, elementHash>& elements, string name) {
+Element findName( unordered_set<Element, elementHash>& elements, string name) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The findName function takes the parameters:
-    elements: the hash table to look through
-    num: the name we are looking for
+    elements: the hash table holding all the elements
+    name: the element name to be searched
 
 It returns the parameters:
-    i: the element that was found
+    i: the element that matches
 
-The point of this function is to search through a hash table and find the
-element corresponding to the given name. Once found that element is
-returned.
+The point of this function is to find an element in the has table based on the
+name passed in.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    for (auto i : elements) {
-        if (i.name == name) {
-            return i;
+    for (auto i : elements) {  // for i in elements...
+        if (i.name == name) {  // if the element name matches the name
+            return i;  // return that element
         }
     }
 }
@@ -167,16 +174,14 @@ returned.
 string getProperties(Element requestElement, int index) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The getProperties function takes the parameters:
-    requestElement: the element we are getting values from
-    index: the characteristic in the element
+    requestElement: the element in question
+    index: the number corresponding to the method of the struct
 
-It returns the parameters:
-    string: the property of that element
+It returns the property queried.
 
-The point of this function is to return a string of a specific property of the
-given element.
+The point of this function is to return a certain property inside the element
+structure created.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    // Switch statement is used due to its compact nature.
     switch (index) {
         case 1: return requestElement.atomNum;
         case 2: return requestElement.name;
@@ -207,7 +212,8 @@ given element.
 }
 
 
-bool sendElement(unordered_set<Element, elementHash>& elements, Element& requestElement) {
+bool sendElement(unordered_set<Element, elementHash>& elements,
+                 Element& requestElement) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The sendElement function takes the parameters:
     elements: the hash table containing all the elements
@@ -249,17 +255,17 @@ to the arduino via the serial port.
 void processRequest(unordered_set<Element, elementHash>& elements) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The processRequest function takes the parameters:
-    elements: the hash table created from the CSV
+    elements: the hash table of elements
 
 It returns no parameters.
 
 The point of this function is to process the communication with the Arduino
-by sending the requested elements and handling search requests.
+by routing to the correct state based on the string processed from serial.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    bool timeout = false;
-    string temp = port.readline(0);
-    if (temp[0] == 'R') {
-        vector<string> request = split(temp, ' ');
+    bool timeout = false;  // initialize timeout to be false
+    string temp = port.readline(0);  // wait for the state-determining string
+    if (temp[0] == 'R') {  // request state
+        vector<string> request = split(temp, ' ');  // split request string
         cout << "Getting request..." << endl;
         cout << endl;
         string atomNum = request[1];
@@ -273,19 +279,19 @@ by sending the requested elements and handling search requests.
         } else {
             cout << "failed to send element" << endl << endl;
         }
-    } else if (temp[0] == 'S') {
-        if (!sendFailed) {
+    } else if (temp[0] == 'S') {  // search state
+        if (!sendFailed) {  // if no timeout...
             cout << "Enter element name here: ";            
-            cin >> nameRequest;
+            cin >> nameRequest;  // get name request from terminal
             nameRequest[0] = tolower(nameRequest[0]);  // Making lowercase
         }
-        getSearchResults(root, nameRequest, elements);
-        sendPredictions();
-        nameRequest.clear();  // clearing name Request
+        getSearchResults(root, nameRequest, elements);  // get the search preds.
+        sendPredictions();  // send the generated predictions
+        nameRequest.clear();  // clearing string for next search
         if (timeout) {
-            sendFailed = true;
+            sendFailed = true;  // sending process failed
         } else {
-            sendFailed = false;
+            sendFailed = false;  // sent successfully
         }
     }
 }
@@ -293,10 +299,10 @@ by sending the requested elements and handling search requests.
 
 int main() {
     cout << "starting program" << endl;
-    unordered_set<Element, elementHash> elements;
-    readFile("table-data.txt", elements);
+    unordered_set<Element, elementHash> elements;  // hash table of elements
+    readFile("table-data.txt", elements);  // read in the CSV
     while (true) {
-        processRequest(elements);
+        processRequest(elements);  // wait for the next request from client
     }
     return 0;
 }
