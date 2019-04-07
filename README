@@ -26,8 +26,7 @@ Wiring Instructions:
       TFT Display:
 
             The display pins are numbered left to right in this document when they are being viewed
-            with their labels showing rightside up. Note you do not require the touchscreen for this assignment,
-            so it is probably a lot easier to not wire the Y+/X+/Y-/X- pins.
+            with their labels showing rightside up.
 
             Display Pin     Arduino Mega Pin
             --------------------------------
@@ -39,6 +38,11 @@ Wiring Instructions:
             6 MOSI          Pin 51
             7 CS            Pin 10
             8 D/C           Pin 9
+
+            11 Y+           Pin A2
+            12 X+           Pin 4
+            13 Y-           Pin 5
+            14 X-           Pin A3
 
             19 CCS          Pin 6
 
@@ -65,13 +69,21 @@ Running Instructions:
 
 How to use:
     Once the program is uploaded to the Arduino and the server is brought online, the following user actions are permitted:
+    Client:
+      Press either button to go to either the next or previous element,
+      Tap the element card to see the back of it. Press again to see the front.
+      Press the top right button to change the layout (3 in total) each layout has a different amount of information.
+      Press the search button and go to the terminal.
+    Server:
+      If the search button is pressed on the client, go to the terminal and enter the element's name or a partial spelling of it and press enter. This will print the matches on the terminal screen and send the top 4 to the client. Once sent to the client press the one you want to go to. If less than 4 but more than 1 matches are found then blank boxes will appear on the client screen. Pressing the empty boxes will bring the user back to the current element. If only one match is found the program will go straight to that element. If no element is found the user will return to the current element.
+
 
 Notes and Assumptions:
-    This program assumes that the user will follow the exact input guidelines as shown above. The user must also strictly follow the running instructions stated above. In this case where the server is running before the program is uploaded to the Arduino, the compiler process will timeout. Also, the user must not access serial-mon at any time as it affects the data trasnfer between the client and server programs.
+    This program assumes that the user will follow the exact input guidelines as shown above. The user must also strictly follow the running instructions stated above. In this case where the server is running before the program is uploaded to the Arduino, the compiler process will timeout. Also, the user must not access serial-mon at any time as it affects the data transfer between the client and server programs.
 
 Modified Code:
   server.cpp:
-    * method for reading in files in the 'readGraph' function found from the site: cplusplus.com/doc/tutorial/files/
+    * method for reading in files in the 'readFile' function found from the site: cplusplus.com/doc/tutorial/files/
   client.cpp:
   serialport.cpp/.h:
     * These files are from class used in assignment 2.
