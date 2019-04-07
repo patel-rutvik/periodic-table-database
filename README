@@ -17,12 +17,10 @@ Included files:
       * client.cpp
       * types.h
       * util.h
-      * circuit-wiring.txt
       * Makefile
     * README
 
 Wiring Instructions:
-  The wiring instructions can be found within the circuit-wiring.txt, but will also be iterated here:
       TFT Display:
 
             The display pins are numbered left to right in this document when they are being viewed
@@ -46,7 +44,7 @@ Wiring Instructions:
 
             19 CCS          Pin 6
 
-            Left and Right buttons:
+      Left and Right buttons:
 
             Button          Arduino Mega Pin
             Left Pin        Pin 3
