@@ -18,10 +18,10 @@ using namespace std;
 
 bool sendFailed = false;
 string nameRequest = "";
-SerialPort port("/dev/ttyACM0");
+SerialPort port("/dev/ttyACM0");  // Creating an instance of SerialPort
 
 
-
+// Defining all the functions
 vector<string> split(string str, char delim);
 void readFile(string filename, unordered_set<Element, elementHash>& table);
 Element findElement( unordered_set<Element, elementHash>& elements, string num);
@@ -33,10 +33,20 @@ void processRequest(unordered_set<Element, elementHash>& elements);
 
 
 void sendPredictions() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The sendPredictions function takes no parameters.
+
+It returns no parameters.
+
+The point of this function is to send the predictions from the search to the
+arduino via the serialport. It handles timeouts if there is no ack, incorrect
+response, or if stuck for more than 5 seconds.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     string ack, output;
     int n = predictions.size();  // finding number of predictions generated
-    clock_t start = clock();
+    clock_t start = clock();  // Initalizing a timer
     while (true) {
+        // If the function is stuck for more than 5 seconds break out
         if ((clock() - start)/CLOCKS_PER_SEC > 5) {
             break;
         }
@@ -67,6 +77,7 @@ void sendPredictions() {
                 }
                 port.writeline("P");  //prediction character
                 port.writeline(" ");
+                // Getting the prediction from the vector
                 pair<string, string> temp = predictions[i];
                 port.writeline(temp.first);  // sending atomic num
                 port.writeline(" ");
@@ -74,7 +85,6 @@ void sendPredictions() {
                 port.writeline("\n");  // sending end line
                 cout << "P " << temp.first << " " << temp.second << endl;
                 
-                //predictions.pop();  // removing the element we just sent
                 ack = port.readline(100);  // receive ack
                 if (ack != "A\n") {
                     failed = true;
@@ -85,12 +95,10 @@ void sendPredictions() {
                 }
                 failed = true;
             }
-
         }
-
-        /*empty stack*/
         if (!failed) {
             cout << "Sent all predictions successfully..." << endl;
+            // Resetting the vector for subsequent searches
             predictions.clear();
             break;
         }

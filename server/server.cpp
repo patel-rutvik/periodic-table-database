@@ -93,7 +93,7 @@ into the table.
             temp.radioactive = token;
             getline(file, token, delim);
             temp.natural = token;
-            getline(file, token, delim);  // metal  - not used           
+            getline(file, token, delim);  // metal  - not used
             getline(file, token, delim);  // nonmetal - not used
             getline(file, token, delim);  // metalloid - not used
             getline(file, token, delim);
@@ -132,7 +132,7 @@ into the table.
 }
 
 
-Element findElement( unordered_set<Element, elementHash>& elements, string num) {
+Element findElement(unordered_set<Element, elementHash>& elements, string num) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The findElement function takes the parameters:
     elements: the hash table holding all the elements
@@ -151,7 +151,7 @@ atomic number passed in.
     }
 }
 
-Element findName( unordered_set<Element, elementHash>& elements, string name) {
+Element findName(unordered_set<Element, elementHash>& elements, string name) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 The findName function takes the parameters:
     elements: the hash table holding all the elements
@@ -281,7 +281,7 @@ by routing to the correct state based on the string processed from serial.
         }
     } else if (temp[0] == 'S') {  // search state
         if (!sendFailed) {  // if no timeout...
-            cout << "Enter element name here: ";            
+            cout << "Enter element name here: ";
             cin >> nameRequest;  // get name request from terminal
             nameRequest[0] = tolower(nameRequest[0]);  // Making lowercase
         }

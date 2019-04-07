@@ -1,3 +1,14 @@
+/*
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Final Project: Periodic Table Database
+Names: Rutvik Patel, Kaden Dreger
+ID: 1530012, 1528632
+CCID: rutvik, kaden
+CMPUT 275 Winter 2018
+
+This file holds all the utility functions and variables.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*/
 #ifndef UTIL_H
 #define UTIL_H
 

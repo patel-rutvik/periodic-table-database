@@ -34,7 +34,7 @@ SerialPort::SerialPort(const char *portName) {
   bzero(&newtio, sizeof(newtio));
 
   newtio.c_cflag = B9600 | CRTSCTS | CS8 | CLOCAL | CREAD;
-  newtio.c_iflag = IGNCR; // carriage returns ('\r') are completely ignored when reading
+  newtio.c_iflag = IGNCR;  // carriage returns ('\r') are completely ignored
   newtio.c_oflag = 0;
   newtio.c_lflag = ICANON;
 
@@ -72,7 +72,7 @@ string SerialPort::readline(int timeout) {
 
     // read a character
     if (read(fd, &c, 1) == 0) {
-      continue; // probably doesn't happen
+      continue;  // probably doesn't happen
     }
     line += c;
   } while (c != '\n');
