@@ -7,7 +7,7 @@ A database for elements in the periodic table where the user can browse through 
 - Arduino Mega 2560 Board
 - Banana plug wires
 - 2 button components
-- 2 brown band resistors
+- 2 10k resistors
 - Adafruit TFT display
 ### Wiring Instructions
 | Display Pins | Arduino Pins |
