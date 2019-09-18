@@ -1,7 +1,5 @@
 # Kaden Dreger and Rutvik Patel
-# 1528632 and 1530012
-# CMPUT 275 Winter 2019
-# Final Project: Periodic Table Database
+# Periodic Table Database
 
 #  This makefile allows the user to link, compile and clean the files
 #  necessary to run server.cpp.
