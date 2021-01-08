@@ -1,6 +1,6 @@
 # Periodic Table Database
 ## Summary
-A database for elements in the periodic table where the user can browse through all the elements, with different UI layouts available to use. This project also has predictive search, using the [Trie](https://en.wikipedia.org/wiki/Trie "Trie") data structure. The user is able to search for a desired element, and if partially correct, the program will print out suggestions that the user can then select from.
+A database for elements in the periodic table where the user can browse through all the elements, with different UI layouts available to use. This project also has predictive search, using the [Trie](https://en.wikipedia.org/wiki/Trie "Trie") data structure. The user is able to search for a desired element, even if it's partially correct, the program will print out suggestions that the user can then select from.
 
 ## Running Instructions
 ### Hardware Components:
